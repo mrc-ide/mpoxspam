@@ -65,7 +65,7 @@ MSSg_vacc <- MSSg * vaccine_scale^2
 MSIg_vacc <- MSIg * vaccine_scale
 
 dot_thetah <- thetah * theta_vacc # was .thetah
-seedrate_next <- max(0, seedrate + rnorm(0, seedrate_sd))
+seedrate_next <- max(as.numeric(0), seedrate + rnorm(0, seedrate_sd))
 
 ## Fraction of contacts in set S in the f, g, and h partnership networks
 MSf <- thetaf * pgf_f1 / fp1
@@ -119,53 +119,53 @@ delta_si_h <- (if (transmh == 0) 0
 ## Find common factors, especially in last two lines of each
 ## Structure with arrays: (fgh) first, then SI then SI
 dMSEf <- -gamma1 * MSEf_vacc +
-  +2 * etaf * MSf * MEf +
-   -etaf * MSEf_vacc +
-    +(-dSf) * (delta_si_f / fp1) * (MSSf_vacc / MSf) +
-    +(-dSg) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (MSSf_vacc / MSf) +
-    +(-dSh) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (MSSf_vacc / MSf)
-dMSIf <- -rf * MSIf_vacc +
-  -gamma1 * MSIf_vacc +
-   +gamma0 * MSEf_vacc +
-    +2 * etaf * MSf * MIf +
-     -etaf * MSIf_vacc +
-      +(-dSf) * (delta_si_f / fp1) * (-MSIf_vacc / MSf) +
-      +(-dSg) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (-MSIf_vacc / MSf) +
-      +(-dSh) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (-MSIf_vacc / MSf)
+  2 * etaf * MSf * MEf -
+   etaf * MSEf_vacc +
+   (-dSf) * (delta_si_f / fp1) * (MSSf_vacc / MSf) +
+   (-dSg) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (MSSf_vacc / MSf) +
+   (-dSh) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (MSSf_vacc / MSf)
+dMSIf <- -rf * MSIf_vacc -
+  gamma1 * MSIf_vacc +
+  gamma0 * MSEf_vacc +
+  2 * etaf * MSf * MIf -
+  etaf * MSIf_vacc +
+  (-dSf) * (delta_si_f / fp1) * (-MSIf_vacc / MSf) +
+  (-dSg) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (-MSIf_vacc / MSf) +
+  (-dSh) * (thetaf * pgf_f1 / pgf_f0 / fp1) * (-MSIf_vacc / MSf)
 
 dMSEg <- -gamma0 * MSEg_vacc +
-  +2 * etag * MSg * MEg +
-   -etag * MSEg_vacc +
-    +(-dSg) * (delta_si_g / gp1) * (MSSg_vacc / MSg) +
-    +(-dSf) * (thetag * pgf_g1 / pgf_g0 / gp1) * (MSSg_vacc / MSg) +
-    +(-dSh) * (thetag * pgf_g1 / pgf_g0 / gp1) * (MSSg_vacc / MSg)
-dMSIg <- -rg * MSIg_vacc +
-  -gamma1 * MSIg_vacc +
-   +gamma0 * MSEg_vacc +
-    +2 * etag * MSg * MIg +
-     -etag * MSIg_vacc +
-      +(-dSg) * (delta_si_g / gp1) * (-MSIg_vacc / MSg) +
-      +(-dSf) * (thetag * pgf_g1 / pgf_g0 / gp1) * (-MSIg_vacc / MSg) +
-      +(-dSh) * (thetag * pgf_g1 / pgf_g0 / gp1) * (-MSIg_vacc / MSg)
+  2 * etag * MSg * MEg -
+  etag * MSEg_vacc +
+  (-dSg) * (delta_si_g / gp1) * (MSSg_vacc / MSg) +
+  (-dSf) * (thetag * pgf_g1 / pgf_g0 / gp1) * (MSSg_vacc / MSg) +
+  (-dSh) * (thetag * pgf_g1 / pgf_g0 / gp1) * (MSSg_vacc / MSg)
+dMSIg <- -rg * MSIg_vacc -
+  gamma1 * MSIg_vacc +
+  gamma0 * MSEg_vacc +
+  2 * etag * MSg * MIg -
+  etag * MSIg_vacc +
+  (-dSg) * (delta_si_g / gp1) * (-MSIg_vacc / MSg) +
+  (-dSf) * (thetag * pgf_g1 / pgf_g0 / gp1) * (-MSIg_vacc / MSg) +
+  (-dSh) * (thetag * pgf_g1 / pgf_g0 / gp1) * (-MSIg_vacc / MSg)
 
-dMSSf <- +1 * etaf * MSf^2 +
-  -etaf * MSSf_vacc +
-  -(-dSf) * (delta_si_f / fp1) * MSSf_vacc / MSf +
-  -((-dSg) + (-dSh)) * (thetaf * pgf_f1 / pgf_f0 / fp1) * MSSf_vacc / MSf
-dMSSg <- +1 * etag * MSg^2 +
-  -etag * MSSg_vacc +
-  -(-dSg) * (delta_si_g / gp1) * MSSg_vacc / MSg +
-  -((-dSf) + (-dSh)) * (thetag * pgf_g1 / pgf_g0 / gp1) * MSSg_vacc / MSg
+dMSSf <- 1 * etaf * MSf^2 -
+                          etaf * MSSf_vacc -
+                          (-dSf) * (delta_si_f / fp1) * MSSf_vacc / MSf -
+                          ((-dSg) + (-dSh)) * (thetaf * pgf_f1 / pgf_f0 / fp1) * MSSf_vacc / MSf
+dMSSg <- 1 * etag * MSg^2 -
+                          etag * MSSg_vacc -
+                          (-dSg) * (delta_si_g / gp1) * MSSg_vacc / MSg -
+                          ((-dSf) + (-dSh)) * (thetag * pgf_g1 / pgf_g0 / gp1) * MSSg_vacc / MSg
 
 dMEf <- -gamma0 * MEf +
-  +(-dSf) * (delta_si_f / fp1) +
-  +((-dSg) + (-dSh)) * (thetaf * pgf_f1 / pgf_f0 / fp1)
+  (-dSf) * (delta_si_f / fp1) +
+  ((-dSg) + (-dSh)) * (thetaf * pgf_f1 / pgf_f0 / fp1)
 dMEg <- -gamma0 * MEg +
-  +(-dSg) * (delta_si_g / gp1) +
-  +((-dSf) + (-dSh)) * (thetag * pgf_g1 / pgf_g0 / gp1)
+  (-dSg) * (delta_si_g / gp1) +
+  ((-dSf) + (-dSh)) * (thetag * pgf_g1 / pgf_g0 / gp1)
 dMEh <- -gamma0 * MEh +
-  +(-dSh) * (delta_si_h / hp1) +
-  +((-dSf) + (-dSg)) * (dot_thetah * pgf_h1 / pgf_h0 / hp1)
+  (-dSh) * (delta_si_h / hp1) +
+  ((-dSf) + (-dSg)) * (dot_thetah * pgf_h1 / pgf_h0 / hp1)
 
 dMIf <- -gamma1 * MIf + gamma0 * MEf
 dMIg <- -gamma1 * MIg + gamma0 * MEg
@@ -174,24 +174,24 @@ dMIh <- -gamma1 * MIh + gamma0 * MEh
 ## infected, infectious and not detected:
 newE <- transmf + transmg + transmh + transmseed
 ## exposed, infectious, diagnosed or undiagnosed
-E_next <- max(0, E + newE - gamma0 * E)
-I_next <- max(0, I + gamma0 * E - gamma1 * I)
+E_next <- max(as.numeric(0), E + newE - gamma0 * E)
+I_next <- max(as.numeric(0), I + gamma0 * E - gamma1 * I)
 
-update(thetaf) <- max(1e-9, min(1, thetaf + dthetaf))
-update(MSEf) <- max(0, MSEf_vacc + dMSEf)
-update(MEf) <- max(0, MEf + dMEf)
-update(MSSf) <- max(0, MSSf_vacc + dMSSf)
-update(MSIf) <- max(0, MSIf_vacc + dMSIf)
-update(MIf) <- max(0, MIf + dMIf)
-update(thetag) <- max(1e-9, min(1, thetag + dthetag))
-update(MSEg) <- max(0, MSEg_vacc + dMSEg)
-update(MEg) <- max(0, MEg + dMEg)
-update(MSSg) <- max(0, MSSg_vacc + dMSSg)
-update(MSIg) <- max(0, MSIg_vacc + dMSIg)
-update(MIg) <- max(0, MIg + dMIg)
-update(thetah) <- max(1e-9, min(1, thetah + dthetah))
-update(MEh) <- max(0, MEh + dMEh)
-update(MIh) <- max(0, MIh + dMIh)
+update(thetaf) <- max(1e-9, min(as.numeric(1), thetaf + dthetaf))
+update(MSEf) <- max(as.numeric(0), MSEf_vacc + dMSEf)
+update(MEf) <- max(as.numeric(0), MEf + dMEf)
+update(MSSf) <- max(as.numeric(0), MSSf_vacc + dMSSf)
+update(MSIf) <- max(as.numeric(0), MSIf_vacc + dMSIf)
+update(MIf) <- max(as.numeric(0), MIf + dMIf)
+update(thetag) <- max(1e-9, min(as.numeric(1), thetag + dthetag))
+update(MSEg) <- max(as.numeric(0), MSEg_vacc + dMSEg)
+update(MEg) <- max(as.numeric(0), MEg + dMEg)
+update(MSSg) <- max(as.numeric(0), MSSg_vacc + dMSSg)
+update(MSIg) <- max(as.numeric(0), MSIg_vacc + dMSIg)
+update(MIg) <- max(as.numeric(0), MIg + dMIg)
+update(thetah) <- max(1e-9, min(as.numeric(1), thetah + dthetah))
+update(MEh) <- max(as.numeric(0), MEh + dMEh)
+update(MIh) <- max(as.numeric(0), MIh + dMIh)
 update(E) <- E_next
 update(I) <- I_next
 update(newI) <- newI + gamma0 * E_next
@@ -204,12 +204,13 @@ update(seedrate) <- seedrate_next
 update(theta_vacc) <- theta_vacc
 
 ## Parameters
+## TODO: these are nicer as expressions, odin supports this now but odin.dust does not rewrite things properly.
 beta <- user(2.25)
-gamma0 <- user(1 / 8)
-gamma1 <- user(1 / 4)
-etaf <- user(1 / 200) ## Anderson Epidemiology 2021
-etag <- user(1 / 100) # Anderson Epidemiology 2021
-N <- user(.49 * 56.3 * (1 - .24) * 1e6 * 0.02) # male*england(millions)*adult*msm
+gamma0 <- user(0.125)
+gamma1 <- user(0.25)
+etaf <- user(0.005) ## Anderson Epidemiology 2021
+etag <- user(0.01) # Anderson Epidemiology 2021
+N <- user(419322.4) # .49 * 56.3 * (1 - .24) * 1e6 * 0.02 male*england(millions)*adult*msm
 i0 <- user(0)
 ## 40pc detection rate
 delta <- user(.4) # ignore.unused
@@ -218,7 +219,7 @@ seedrate_sd <- user(0.05)
 vacc_freq <- user(7)
 vacc_amt <- user(0.04)
 vacc_start_day <- user(91)
-vacc_fin_day <- user(91 + 5 * 7)
+vacc_fin_day <- user(126) # 91 + 5 * 7
 
 fp1 <- (2000 + 2 * 95) / 4904
 gp1 <- (1009 + 2 * 477 + 3 * 475) / 4904

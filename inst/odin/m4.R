@@ -56,6 +56,7 @@ add_vaccine <-
   (time <= vacc_fin_day)   &&
   (((time - vacc_start_day) %% vacc_freq) == 0)
 
+
 vaccine_scale <- if (add_vaccine) 1 - vacc_amt else 1
 MSEf_vacc <- MSEf * vaccine_scale
 MSSf_vacc <- MSSf * vaccine_scale^2
@@ -64,7 +65,11 @@ MSEg_vacc <- MSEg * vaccine_scale
 MSSg_vacc <- MSSg * vaccine_scale^2
 MSIg_vacc <- MSIg * vaccine_scale
 
-dot_thetah <- thetah * theta_vacc # was .thetah
+p0 <- (1 - log(theta_vacc) / hrate)^(-hshape) # i.e., h(theta_vacc)
+p1 <- max(0.01, p0 - vacc_amt)
+
+theta_vacc_use <- if (add_vaccine) exp((1 - p1^(-1/hshape)) * hrate) else theta_vacc
+dot_thetah <- thetah * theta_vacc_use # was .thetah
 seedrate_next <- max(as.numeric(0), seedrate + rnorm(0, seedrate_sd))
 
 ## Fraction of contacts in set S in the f, g, and h partnership networks

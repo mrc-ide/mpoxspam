@@ -246,15 +246,17 @@ public:
     real_type xinit;
   };
   struct internal_type {
+    real_type initial_time;
   };
   m4_2(const dust::pars_type<m4_2>& pars) :
     shared(pars.shared), internal(pars.internal) {
   }
   size_t size() {
-    return 30;
+    return 31;
   }
   std::vector<real_type> initial(size_t step) {
-    std::vector<real_type> state(30);
+    std::vector<real_type> state(31);
+    internal.initial_time = step + 1;
     state[0] = shared->initial_thetaf;
     state[1] = shared->initial_MSEf;
     state[2] = shared->initial_MEf;
@@ -285,6 +287,7 @@ public:
     state[27] = shared->initial_S_vacc;
     state[28] = shared->initial_beta;
     state[29] = shared->initial_cumulative_partners;
+    state[30] = internal.initial_time;
     return state;
   }
   void update(size_t step, const real_type * state, rng_state_type& rng_state, real_type * state_next) {
@@ -317,40 +320,43 @@ public:
     const real_type theta_vacc = state[26];
     const real_type S_vacc = state[27];
     const real_type beta = state[28];
+    const real_type time = state[30];
     real_type I_next = std::max(static_cast<real_type>(0), I + shared->gamma0 * E - shared->gamma1 * I);
+    real_type beta_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? std::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
     real_type dMIf = - shared->gamma1 * MIf + shared->gamma0 * MEf;
     real_type dMIg = - shared->gamma1 * MIg + shared->gamma0 * MEg;
     real_type dMIh = - shared->gamma1 * MIh + shared->gamma0 * MEh;
-    real_type newI_next = newI + shared->gamma0 * E;
-    real_type newIseed_next = newIseed + shared->gamma0 * Eseed;
-    real_type time = step;
-    real_type add_vaccine = (time >= shared->vacc_start_day) && (time <= shared->vacc_fin_day) && ((fmodr<real_type>((time - shared->vacc_start_day), shared->vacc_freq)) == 0);
-    real_type beta_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? std::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
     real_type dseedrate_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::random::normal<real_type>(rng_state, dseedrate, shared->seedrate_sd) : dseedrate);
+    real_type reset_weekly = fmodr<real_type>(step, 7) == 0;
+    state_next[30] = step + 1;
+    real_type add_vaccine = (time >= shared->vacc_start_day) && (time <= shared->vacc_fin_day) && ((fmodr<real_type>((time - shared->vacc_start_day), shared->vacc_freq)) == 0);
+    real_type newI_next = ((reset_weekly ? 0 : newI)) + shared->gamma0 * E;
+    real_type newIseed_next = ((reset_weekly ? 0 : newIseed)) + shared->gamma0 * Eseed;
+    real_type rf = beta_next * 1.5 / (real_type) 7;
+    real_type rg = beta_next * 1 / (real_type) 7;
+    real_type seedrate_next = std::max(static_cast<real_type>(0), seedrate + dseedrate_next);
     state_next[16] = I_next;
     state_next[5] = std::max(static_cast<real_type>(0), MIf + dMIf);
     state_next[11] = std::max(static_cast<real_type>(0), MIg + dMIg);
     state_next[14] = std::max(static_cast<real_type>(0), MIh + dMIh);
-    state_next[17] = newI_next;
-    state_next[19] = newIseed_next;
-    real_type S_vacc_use = (add_vaccine ? S_vacc * (1 - shared->amt_random) : S_vacc);
-    real_type rf = beta_next * 1.5 / (real_type) 7;
-    real_type rg = beta_next * 1 / (real_type) 7;
-    real_type seedrate_next = std::max(static_cast<real_type>(0), seedrate + dseedrate_next);
-    real_type theta_vacc_use = (add_vaccine ? update_theta_vacc4_2(theta_vacc, shared->amt_targetted) : theta_vacc);
     state_next[28] = beta_next;
     state_next[25] = dseedrate_next;
+    real_type S_vacc_use = (add_vaccine ? S_vacc * (1 - shared->amt_random) : S_vacc);
+    real_type theta_vacc_use = (add_vaccine ? update_theta_vacc4_2(theta_vacc, shared->amt_targetted) : theta_vacc);
+    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next);
+    state_next[17] = newI_next;
+    state_next[19] = newIseed_next;
+    state_next[24] = seedrate_next;
+    real_type Eseed_next = std::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed);
     real_type dot_thetaf = thetaf * theta_vacc_use;
     real_type dot_thetag = thetag * theta_vacc_use;
     real_type dot_thetah = thetah * theta_vacc_use;
     real_type red_f = (theta_vacc_use * fp(theta_vacc_use)) / (real_type) (theta_vacc * fp(theta_vacc));
     real_type red_g = (theta_vacc_use * gp(theta_vacc_use)) / (real_type) (theta_vacc * gp(theta_vacc));
-    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next);
     real_type trateh = std::max(static_cast<real_type>(0), beta_next * MIh * shared->N * hp(1) * S_vacc_use);
     state_next[27] = S_vacc_use;
-    state_next[24] = seedrate_next;
+    state_next[23] = cuts + transmseed;
     state_next[26] = theta_vacc_use;
-    real_type Eseed_next = std::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed);
     real_type MSf = dot_thetaf * S_vacc_use * fp(dot_thetaf) / (real_type) fp(1);
     real_type MSg = dot_thetag * S_vacc_use * gp(dot_thetag) / (real_type) gp(1);
     real_type meanfield_delta_si_f = (dot_thetaf * fpp(dot_thetaf) / (real_type) fp(dot_thetaf));
@@ -359,7 +365,7 @@ public:
     real_type transmh = dust::random::poisson<real_type>(rng_state, trateh);
     real_type u2f = (dot_thetaf * fpp(dot_thetaf) + std::pow(dot_thetaf, 2) * fppp(dot_thetaf)) / (real_type) fp(dot_thetaf);
     real_type u2g = (dot_thetag * gpp(dot_thetag) + std::pow(dot_thetag, 2) * gppp(dot_thetag)) / (real_type) gp(dot_thetag);
-    state_next[23] = cuts + transmseed;
+    state_next[18] = Eseed_next;
     real_type vaccine_scale_f = (add_vaccine ? (1 - shared->amt_random) * red_f : 1);
     real_type vaccine_scale_g = (add_vaccine ? (1 - shared->amt_random) * red_g : 1);
     real_type MSEf_vacc = MSEf * vaccine_scale_f;
@@ -372,7 +378,6 @@ public:
     real_type u1f = meanfield_delta_si_f;
     real_type u1g = meanfield_delta_si_g;
     real_type u1h = meanfield_delta_si_h;
-    state_next[18] = Eseed_next;
     state_next[22] = cuth + transmh;
     real_type dSh = hp(dot_thetah) * dthetah;
     real_type tratef = std::max(static_cast<real_type>(0), MSIf_vacc * shared->N * fp(1) * rf);
@@ -725,8 +730,8 @@ template <>
 cpp11::sexp dust_info<m4_2>(const dust::pars_type<m4_2>& pars) {
   const m4_2::internal_type internal = pars.internal;
   const std::shared_ptr<const m4_2::shared_type> shared = pars.shared;
-  cpp11::writable::strings nms({"thetaf", "MSEf", "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", "MSSg", "MSIg", "MIg", "thetah", "MEh", "MIh", "E", "I", "newI", "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", "seedrate", "dseedrate", "theta_vacc", "S_vacc", "beta", "cumulative_partners"});
-  cpp11::writable::list dim(30);
+  cpp11::writable::strings nms({"thetaf", "MSEf", "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", "MSSg", "MSIg", "MIg", "thetah", "MEh", "MIh", "E", "I", "newI", "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", "seedrate", "dseedrate", "theta_vacc", "S_vacc", "beta", "cumulative_partners", "time"});
+  cpp11::writable::list dim(31);
   dim[0] = cpp11::writable::integers({1});
   dim[1] = cpp11::writable::integers({1});
   dim[2] = cpp11::writable::integers({1});
@@ -757,8 +762,9 @@ cpp11::sexp dust_info<m4_2>(const dust::pars_type<m4_2>& pars) {
   dim[27] = cpp11::writable::integers({1});
   dim[28] = cpp11::writable::integers({1});
   dim[29] = cpp11::writable::integers({1});
+  dim[30] = cpp11::writable::integers({1});
   dim.names() = nms;
-  cpp11::writable::list index(30);
+  cpp11::writable::list index(31);
   index[0] = cpp11::writable::integers({1});
   index[1] = cpp11::writable::integers({2});
   index[2] = cpp11::writable::integers({3});
@@ -789,8 +795,9 @@ cpp11::sexp dust_info<m4_2>(const dust::pars_type<m4_2>& pars) {
   index[27] = cpp11::writable::integers({28});
   index[28] = cpp11::writable::integers({29});
   index[29] = cpp11::writable::integers({30});
+  index[30] = cpp11::writable::integers({31});
   index.names() = nms;
-  size_t len = 30;
+  size_t len = 31;
   using namespace cpp11::literals;
   return cpp11::writable::list({
            "dim"_nm = dim,

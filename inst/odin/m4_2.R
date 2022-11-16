@@ -51,11 +51,10 @@ vacc_targetted <- user(.8) # prop vacc targetted vs random
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
 
-## These two were parameters but with derived defaults; could make these user again and move that logic into R
+## These two were parameters but with derived defaults; could make
+## these user again and move that logic into R
 vacc_amt <- 0.65 * 50e3 / vacc_duration # assuming about 50k doses by end of august 65% one dose vacc eff
 vacc_fin_day <- vacc_start_day + vacc_duration
-
-time <- step
 
 add_vaccine <-
   (time >= vacc_start_day) &&
@@ -161,11 +160,6 @@ cumulative_partners_next <-
     tauh * meanfield_delta_si_h
   )
 
-
-## .theta -> dot_theta
-## MSSf -> MSSf_vacc (etc)
-## remove double sums
-
 dMSEf <- -gamma1 * MSEf +
   2 * etaf * MSf * MEf -
   etaf * MSEf +
@@ -180,7 +174,6 @@ dMSIf <- -rf * MSIf -
   (-dSf) * (delta_si_f / fp(1)) * (-MSIf_vacc / MSf) +
   (-dSg) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (-MSIf_vacc / MSf) +
   (-dSh) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (-MSIf_vacc / MSf)
-
 
 dMSEg <- -gamma0 * MSEg +
   2 * etag * MSg * MEg -
@@ -220,18 +213,20 @@ dMIf <- -gamma1 * MIf + gamma0 * MEf
 dMIg <- -gamma1 * MIg + gamma0 * MEg
 dMIh <- -gamma1 * MIh + gamma0 * MEh
 
+reset_weekly <- step %% 7 == 0
+
 ## infected, infectious and not detected:
 newE <- transmf + transmg + transmh + transmseed
 ## exposed, infectious, diagnosed or undiagnosed
 I_next <- max(as.numeric(0), I + gamma0 * E - gamma1 * I)
 ## new case detections. some subset of these will be detected each week
-newI_next <- newI + gamma0 * E # will accumulate between obvs
+newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E # will accumulate between obvs
 E_next <- max(as.numeric(0), E + newE - gamma0 * E)
 
 # seed state variables
 # exposed, infectious, diagnosed or undiagnosed
 # new case detections. some subset of these will be detected each week
-newIseed_next <- newIseed + gamma0 * Eseed # will accumulate between obvs
+newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed # will accumulate between obvs
 Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
 
 ## At this point, Erik checks that there are no na values in
@@ -270,3 +265,8 @@ update(beta) <- beta_next
 update(cumulative_partners) <- cumulative_partners_next
 
 config(include) <- "support.hpp"
+
+## We'll need this; strictly this is (step + 1) * dt but we use unit
+## timesteps here.
+initial(time) <- step + 1
+update(time) <- step + 1

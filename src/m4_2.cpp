@@ -153,10 +153,16 @@ inline double hppp(double x) {
 
 // [[odin.dust::register]]
 inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
+  static constexpr double tol = std::sqrt(std::numeric_limits<double>::epsilon());
   const double p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
   const double p1 = std::max(0.01, p0 - amt_targetted);
-  const auto fn = [&](double x) { return f(exp(x)) * g(exp(x)) * h(exp(x)) - p1; };
-  return std::exp(uniroot_brent<double>(fn, -1e4, 0, 1e-6, 1000));
+  // There's a small optimisation that can be made here by avoiding
+  // doing log(exp(x)) in h
+  const auto fn = [&](double x) {
+                    const auto exp_x = std::exp(x);
+                    return f(exp_x) * g(exp_x) * std::pow(1 - x / hrate, -hshape) - p1;
+                  };
+  return std::exp(uniroot_brent<double>(fn, -1e4, 0, tol, 1000));
 }
 // [[dust::class(m4_2)]]
 // [[dust::param(N, has_default = TRUE, default_value = 750000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]

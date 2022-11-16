@@ -66,11 +66,11 @@ amt_targetted <- vacc_targetted * vacc_amt / N
 amt_random <- (1 - vacc_targetted) * vacc_amt / N
 
 ## Erik's theta_vacc0 is our theta_vacc, his theta_vacc our theta_vacc_use
-theta_vacc_use <- update_theta_vacc4_2(theta_vacc, amt_targetted)
+theta_vacc_use <- if (add_vaccine) update_theta_vacc4_2(theta_vacc, amt_targetted) else theta_vacc
 red_f <- (theta_vacc_use * fp(theta_vacc_use)) / (theta_vacc * fp(theta_vacc))
 red_g <- (theta_vacc_use * gp(theta_vacc_use)) / (theta_vacc * gp(theta_vacc))
 
-S_vacc_use <- S_vacc * (1 - amt_random)
+S_vacc_use <- if (add_vaccine) S_vacc * (1 - amt_random) else S_vacc
 
 vaccine_scale_f <- if (add_vaccine) (1 - amt_random) * red_f else 1
 vaccine_scale_g <- if (add_vaccine) (1 - amt_random) * red_g else 1
@@ -264,7 +264,7 @@ update(cuth) <- cuth + transmh
 update(cuts) <- cuts + transmseed
 update(seedrate) <- seedrate_next
 update(dseedrate) <- dseedrate_next
-update(theta_vacc) <- theta_vacc
+update(theta_vacc) <- theta_vacc_use
 update(S_vacc) <- S_vacc_use
 update(beta) <- beta_next
 update(cumulative_partners) <- cumulative_partners_next

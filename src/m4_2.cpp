@@ -324,7 +324,6 @@ public:
     real_type newI_next = newI + shared->gamma0 * E;
     real_type newIseed_next = newIseed + shared->gamma0 * Eseed;
     real_type time = step;
-    state_next[26] = theta_vacc;
     real_type add_vaccine = (time >= shared->vacc_start_day) && (time <= shared->vacc_fin_day) && ((fmodr<real_type>((time - shared->vacc_start_day), shared->vacc_freq)) == 0);
     real_type beta_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? std::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
     real_type dseedrate_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::random::normal<real_type>(rng_state, dseedrate, shared->seedrate_sd) : dseedrate);
@@ -334,11 +333,11 @@ public:
     state_next[14] = std::max(static_cast<real_type>(0), MIh + dMIh);
     state_next[17] = newI_next;
     state_next[19] = newIseed_next;
-    real_type S_vacc_use = S_vacc * (1 - shared->amt_random);
+    real_type S_vacc_use = (add_vaccine ? S_vacc * (1 - shared->amt_random) : S_vacc);
     real_type rf = beta_next * 1.5 / (real_type) 7;
     real_type rg = beta_next * 1 / (real_type) 7;
     real_type seedrate_next = std::max(static_cast<real_type>(0), seedrate + dseedrate_next);
-    real_type theta_vacc_use = update_theta_vacc4_2(theta_vacc, shared->amt_targetted);
+    real_type theta_vacc_use = (add_vaccine ? update_theta_vacc4_2(theta_vacc, shared->amt_targetted) : theta_vacc);
     state_next[28] = beta_next;
     state_next[25] = dseedrate_next;
     real_type dot_thetaf = thetaf * theta_vacc_use;
@@ -350,6 +349,7 @@ public:
     real_type trateh = std::max(static_cast<real_type>(0), beta_next * MIh * shared->N * hp(1) * S_vacc_use);
     state_next[27] = S_vacc_use;
     state_next[24] = seedrate_next;
+    state_next[26] = theta_vacc_use;
     real_type Eseed_next = std::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed);
     real_type MSf = dot_thetaf * S_vacc_use * fp(dot_thetaf) / (real_type) fp(1);
     real_type MSg = dot_thetag * S_vacc_use * gp(dot_thetag) / (real_type) gp(1);

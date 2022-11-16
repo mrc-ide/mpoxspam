@@ -92,7 +92,7 @@ inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
   const double p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
   const double p1 = std::max(0.01, p0 - amt_targetted);
   const auto fn = [&](double x) { return f(exp(x)) * g(exp(x)) * h(exp(x)) - p1; };
-  return uniroot_brent<double>(fn, -1e4, 0, 1e-6, 1000);
+  return std::exp(uniroot_brent<double>(fn, -1e4, 0, 1e-6, 1000));
 }
 // [[dust::class(m4_2)]]
 // [[dust::param(N, has_default = TRUE, default_value = 750000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]

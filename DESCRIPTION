@@ -15,7 +15,8 @@ RoxygenNote: 7.2.1
 URL: https://github.com/mrc-ide/monkeyspam
 BugReports: https://github.com/mrc-ide/monkeyspam/issues
 Imports:
-    dust
+    dust,
+    mcstate (>= 0.9.13)
 LinkingTo:
     cpp11,
     dust
@@ -26,4 +27,5 @@ Config/testthat/edition: 3
 SystemRequirements: C++11
 Remotes:
     mrc-ide/dust,
+    mrc-ide/mcstate@gh-97
     mrc-ide/odin.dust

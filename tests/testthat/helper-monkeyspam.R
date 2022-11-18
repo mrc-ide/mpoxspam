@@ -107,3 +107,15 @@ reference_pars <- function() {
        vacc_targetted = 0.8,
        cumulative_partners_days = 90)
 }
+
+
+filter_data <- function() {
+  d <- reference_data()
+  d0 <- d[1, ]
+  d0[] <- NA
+  d0$day <- 1
+  d0$date <- d0$day + as.Date("2022-03-20")
+  ret <- rbind(d0, d)
+  rownames(ret) <- NULL
+  ret
+}

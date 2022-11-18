@@ -41,3 +41,10 @@ m4_2_index <- function(info) {
                time = info$index$time),
        state = NULL)
 }
+
+
+m4_2_filter <- function(data, ...) {
+  mcstate::particle_filter$new(data, m4_2, ...,
+                               compare = m4_2_compare,
+                               index = m4_2_index)
+}

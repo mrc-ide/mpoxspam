@@ -1,5 +1,4 @@
-compare_4.2 <- function(state, observed, pars) {
-  browser()
+m4_2_compare <- function(state, observed, pars) {
   ## Unpack modelled:
   newI <- state["newI", ]
   newIseed <- state["newIseed", ]
@@ -10,32 +9,35 @@ compare_4.2 <- function(state, observed, pars) {
   Yendog <- observed$Yendog
   Yunk <- observed$Yunk
 
-  n_particles <- nrow(state)
+  n_particles <- ncol(state)
 
   ## TODO: need to get time in here, why don't we have this already?
   Y <- ceiling(Ytravel + Yendog + Yunk)
   delta <- max(.01, min(pars$delta1, pars$delta0 + pars$delta_slope * time))
-  if (any(is.na(Y))) {
-    stop("Unexpected missing value")
+  if (is.na(Y)) {
+    return(rep_len(0, n_particles))
   }
+
   t1 <- rep_len(-Inf, n_particles)
   i <- newI >= Y
   t1[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
-  ## t1[any(is.na(t1))] <- -Inf # hopefully not needed?
 
-  t2 <- rep_len(0, n_particles)
-  i <- Ytravel[i] + Yendog[i] > 0
-  t2[i] <- dbinom(ceiling(Ytravel[i]),
-                  size = ceiling(Ytravel[i] + Yendog[i]),
-                  prob = newIseed[i] / (newIseed[i] + newI[i]), log = TRUE)
-  ## t2[any(is.na(t2))] <- -Inf # hopefully not needed?
+  if (Ytravel + Yendog > 0) {
+    i <- newIseed + newI > 0
+    t2 <- rep_len(-Inf, n_particles)
+    t2[i] <- dbinom(ceiling(Ytravel),
+                    size = ceiling(Ytravel + Yendog),
+                    prob = newIseed[i] / (newIseed[i] + newI[i]), log = TRUE)
+  } else {
+    t2 <- 0
+  }
 
   t1 + t2
 }
 
-index_4.2 <- function(info) {
-  list(run = c(newI = info$index$new_I,
-               newISeed = info$index$newIseed,
+m4_2_index <- function(info) {
+  list(run = c(newI = info$index$newI,
+               newIseed = info$index$newIseed,
                time = info$index$time),
        state = NULL)
 }

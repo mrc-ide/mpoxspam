@@ -39,12 +39,13 @@ m4_2_index <- function(info) {
   list(run = c(newI = info$index$newI,
                newIseed = info$index$newIseed,
                time = info$index$time),
-       state = NULL)
+       state = integer(0))
 }
 
 
-m4_2_filter <- function(data, ...) {
+m4_2_filter <- function(data, ..., use_compiled_compare = FALSE) {
+  compare <- if (use_compiled_compare) NULL else m4_2_compare
   mcstate::particle_filter$new(data, m4_2, ...,
-                               compare = m4_2_compare,
+                               compare = compare,
                                index = m4_2_index)
 }

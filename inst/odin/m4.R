@@ -56,7 +56,6 @@ add_vaccine <-
   (time <= vacc_fin_day)   &&
   (((time - vacc_start_day) %% vacc_freq) == 0)
 
-
 vaccine_scale <- if (add_vaccine) 1 - vacc_amt else 1
 MSEf_vacc <- MSEf * vaccine_scale
 MSSf_vacc <- MSSf * vaccine_scale^2

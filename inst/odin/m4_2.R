@@ -30,6 +30,11 @@ initial(beta) <- beta0
 initial(cumulative_partners) <- 0
 xinit <- i0 / N
 
+## We'll need this; strictly this is (step + 1) * dt but we use unit
+## timesteps here.
+initial(time) <- step + 1
+update(time) <- step + 1
+
 beta0 <- user(2.25)
 beta_freq <- user(7)
 beta_sd <- user(0.15)  # 1 = 2*sqrt( (75/7)*sigma2 )
@@ -266,8 +271,3 @@ update(cumulative_partners) <- cumulative_partners_next
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
-
-## We'll need this; strictly this is (step + 1) * dt but we use unit
-## timesteps here.
-initial(time) <- step + 1
-update(time) <- step + 1

@@ -263,6 +263,7 @@ public:
     return state;
   }
   void update(size_t step, const real_type * state, rng_state_type& rng_state, real_type * state_next) {
+    const real_type time = state[30];
     const real_type thetaf = state[0];
     const real_type MSEf = state[1];
     const real_type MEf = state[2];
@@ -292,7 +293,6 @@ public:
     const real_type theta_vacc = state[26];
     const real_type S_vacc = state[27];
     const real_type beta = state[28];
-    const real_type time = state[30];
     real_type I_next = std::max(static_cast<real_type>(0), I + shared->gamma0 * E - shared->gamma1 * I);
     real_type beta_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? std::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
     real_type dMIf = - shared->gamma1 * MIf + shared->gamma0 * MEf;

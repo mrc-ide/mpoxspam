@@ -19,7 +19,8 @@ Imports:
     mcstate (>= 0.9.13)
 LinkingTo:
     cpp11,
-    dust
+    dust,
+    lostturnip
 Suggests:
     odin.dust,
     testthat (>= 3.0.0)
@@ -27,5 +28,6 @@ Config/testthat/edition: 3
 SystemRequirements: C++11
 Remotes:
     mrc-ide/dust,
-    mrc-ide/mcstate@gh-97
+    mrc-ide/lostturnip@prototype,
+    mrc-ide/mcstate@gh-97,
     mrc-ide/odin.dust

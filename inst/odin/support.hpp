@@ -1,4 +1,4 @@
-#include "uniroot.hpp"
+#include <lostturnip.hpp>
 
 // [[odin.dust::register]]
 inline double f(double x) {
@@ -76,5 +76,5 @@ inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
                     const auto exp_x = std::exp(x);
                     return f(exp_x) * g(exp_x) * std::pow(1 - x / hrate, -hshape) - p1;
                   };
-  return std::exp(uniroot_brent<double>(fn, -1e4, 0, tol, 1000));
+  return std::exp(lostturnip::find<double>(fn, -1e4, 0, tol, 1000));
 }

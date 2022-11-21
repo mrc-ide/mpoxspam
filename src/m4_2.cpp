@@ -154,7 +154,11 @@ inline double hppp(double x) {
 
 // [[odin.dust::register]]
 inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
-  static constexpr double tol = std::sqrt(std::numeric_limits<double>::epsilon());
+  // Somewhat annoyingly, we can do this as constexpr in gcc but it's
+  // not portable as sqrt() is not constexpr in any version of the
+  // standard. It's possible that the compiler will work this out for
+  // us?
+  const double tol = std::sqrt(std::numeric_limits<double>::epsilon());
   const double p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
   const double p1 = std::max(0.01, p0 - amt_targetted);
   // There's a small optimisation that can be made here by avoiding

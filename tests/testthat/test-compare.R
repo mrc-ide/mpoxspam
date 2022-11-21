@@ -26,3 +26,19 @@ test_that("can use compiled compare", {
                  m4_2_compare(y, dat[i, ], pars))
   }
 })
+
+
+test_that("compare is correct for missing data", {
+  pars <- reference_pars()
+  dat <- reference_data()
+  dat[2, "Ytravel"] <- NA
+
+  m <- m4_2$new(pars, 1, 100, seed = 1)
+  m$set_index(m4_2_index(m$info())$run)
+  m$set_data(dust::dust_data(dat, "day"))
+
+  y <- m$run(dat$day[[2]])
+  expect_equal(reference_compare(y, dat[2, ], pars), rep(0, 100))
+  expect_equal(m4_2_compare(y, dat[2, ], pars), rep(0, 100))
+  expect_equal(m$compare_data(), rep(0, 100))
+})

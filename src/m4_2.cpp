@@ -164,6 +164,38 @@ inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
                   };
   return std::exp(uniroot_brent<double>(fn, -1e4, 0, tol, 1000));
 }
+// [[odin.dust::compare_data(Ytravel = real_type, Yendog = real_type, Yunk = real_type)]]
+// [[odin.dust::compare_function]]
+template <typename T>
+typename T::real_type
+compare(const typename T::real_type * state,
+        const typename T::data_type& data,
+        const typename T::internal_type internal,
+        std::shared_ptr<const typename T::shared_type> shared,
+        typename T::rng_state_type& rng_state) {
+  typedef typename T::real_type real_type;
+  const real_type newI = state[17];
+  const real_type newIseed = state[19];
+  const real_type time = state[30];
+  const real_type Yknown = data.Ytravel + data.Yendog;
+  const real_type Y = Yknown + data.Yunk;
+
+  real_type ret = 0;
+  if (!std::isnan(Y)) {
+    const real_type delta = std::max(0.01, std::min(shared->delta1, shared->delta0 + shared->delta_slope * time));
+    constexpr real_type inf = std::numeric_limits<real_type>::infinity();
+
+    const real_type t1 = newI < Y ? -inf : dust::density::binomial(Y, std::ceil(newI), delta, true);
+
+    real_type t2 = 0;
+    if (Yknown > 0) {
+      const real_type newItotal = newIseed + newI;
+      t2 = newItotal == 0 ? -inf : dust::density::binomial(std::ceil(data.Ytravel), std::ceil(Yknown), newIseed / newItotal, true);
+    }
+    ret = t1 + t2;
+  }
+  return ret;
+}
 // [[dust::class(m4_2)]]
 // [[dust::param(N, has_default = TRUE, default_value = 750000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta0, has_default = TRUE, default_value = 2.25, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -188,7 +220,11 @@ class m4_2 {
 public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
-  using data_type = dust::no_data;
+  struct __align__(16) data_type {
+    real_type Ytravel;
+    real_type Yendog;
+    real_type Yunk;
+  };
   struct shared_type {
     real_type N;
     real_type amt_random;
@@ -426,6 +462,9 @@ public:
     state_next[10] = std::max(static_cast<real_type>(0), MSIg_vacc + dMSIg);
     state_next[3] = std::max(static_cast<real_type>(0), MSSf_vacc + dMSSf);
     state_next[9] = std::max(static_cast<real_type>(0), MSSg_vacc + dMSSg);
+  }
+  real_type compare_data(const real_type * state, const data_type& data, rng_state_type& rng_state) {
+    return compare<m4_2>(state, data, internal, shared, rng_state);
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -803,6 +842,15 @@ cpp11::sexp dust_info<m4_2>(const dust::pars_type<m4_2>& pars) {
            "dim"_nm = dim,
            "len"_nm = len,
            "index"_nm = index});
+}
+template <>
+m4_2::data_type dust_data<m4_2>(cpp11::list data) {
+  using real_type = m4_2::real_type;
+  return m4_2::data_type{
+      cpp11::as_cpp<real_type>(data["Ytravel"]),
+      cpp11::as_cpp<real_type>(data["Yendog"]),
+      cpp11::as_cpp<real_type>(data["Yunk"])
+    };
 }
 }
 

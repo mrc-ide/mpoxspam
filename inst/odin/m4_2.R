@@ -265,6 +265,7 @@ update(beta) <- beta_next
 update(cumulative_partners) <- cumulative_partners_next
 
 config(include) <- "support.hpp"
+config(compare) <- "compare.hpp"
 
 ## We'll need this; strictly this is (step + 1) * dt but we use unit
 ## timesteps here.

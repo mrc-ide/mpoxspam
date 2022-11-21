@@ -11,7 +11,6 @@ m4_2_compare <- function(state, observed, pars) {
 
   n_particles <- ncol(state)
 
-  ## TODO: need to get time in here, why don't we have this already?
   Y <- ceiling(Ytravel + Yendog + Yunk)
   delta <- max(.01, min(pars$delta1, pars$delta0 + pars$delta_slope * time))
   if (is.na(Y)) {

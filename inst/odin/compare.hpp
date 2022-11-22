@@ -12,7 +12,7 @@ compare(const typename T::real_type * state,
   const real_type newIseed = odin(newIseed);
   const real_type time = odin(time);
   const real_type Yknown = data.Ytravel + data.Yendog;
-  const real_type Y = Yknown + data.Yunk;
+  const real_type Y = std::ceil(Yknown + data.Yunk);
 
   real_type ret = 0;
   if (!std::isnan(Y)) {

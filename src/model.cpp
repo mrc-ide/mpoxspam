@@ -88,86 +88,135 @@ __host__ __device__ T odin_max(T x, T y) {
 #include <lostturnip.hpp>
 
 // [[odin.dust::register]]
-inline double f(double x) {
-  return (2809 + 2000 * x + 95 * x * x) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type f(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2809 + 2000 * x + 95 * x * x) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double fp(double x) {
-  return (2000 + 2 * 95 * x) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type fp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2000 + 2 * 95 * x) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double fpp(double x) {
-  return (2.0 * 95.0) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type fpp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2 * 95) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double fppp(double x) {
+template <typename real_type>
+__host__ __device__
+real_type fppp(real_type x) {
   return 0;
 }
 
 // [[odin.dust::register]]
-inline double g(double x) {
-  return (2943 + 1009 * x + 477 * x * x + 475 * x * x * x) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type g(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2943 + 1009 * x + 477 * x * x + 475 * x * x * x) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double gp(double x) {
-  return (1009 + 2 * 477 * x + 3 * 475 * x * x) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type gp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (1009 + 2 * 477 * x + 3 * 475 * x * x) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double gpp(double x) {
-  return (2 * 477 + 2 * 3 * 475 * x) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type gpp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2 * 477 + 2 * 3 * 475 * x) / static_cast<real_type>(4904);
 }
 
 // [[odin.dust::register]]
-inline double gppp(double x) {
-  return (2 * 3 * 475.0) / 4904.0;
+template <typename real_type>
+__host__ __device__
+real_type gppp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  return (2 * 3 * 475) / static_cast<real_type>(4904);
 }
 
-constexpr double hshape = 0.26;
-constexpr double hrate = 1.85 * 7;
+// There's a bit of a fight here with hrate and hshape because we need
+// these to be in the correct precision given the their functions.
+template <typename real_type>
+constexpr real_type hshape = 0.26;
+template <typename real_type>
+constexpr real_type hrate = 1.85 * 7;
 
 // [[odin.dust::register]]
-inline double h(double x) {
-  return std::pow(1 - std::log(x) / hrate, -hshape);
-}
-
-// [[odin.dust::register]]
-inline double hp(double x) {
-  return hshape * std::pow(1 - std::log(x) / hrate, -hshape - 1) / (hrate * x);
-}
-
-// [[odin.dust::register]]
-inline double hpp(double x) {
-  return hshape * std::pow((hrate - std::log(x)) / hrate, -hshape) *
-    (-hrate + hshape + std::log(x) + 1) / (x * x * std::pow(hrate - std::log(x), 2));
-}
-
-// [[odin.dust::register]]
-inline double hppp(double x) {
-  return hshape * std::pow((hrate - std::log(x)) / hrate, -hshape) *
-    (hshape * hshape + 3 * hshape + 2 * std::pow(hrate - std::log(x), 2) - 3 * (hrate - std::log(x)) * (hshape + 1) + 2) / (x * x * x * std::pow(hrate - std::log(x), 3));
+template <typename real_type>
+__host__ __device__
+real_type h(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  const real_type hs = hshape<real_type>;
+  const real_type hr = hrate<real_type>;
+  return std::pow(1 - std::log(x) / hr, -hs);
 }
 
 // [[odin.dust::register]]
-inline double update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
+template <typename real_type>
+__host__ __device__
+real_type hp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  const real_type hs = hshape<real_type>;
+  const real_type hr = hrate<real_type>;
+  return hs * std::pow(1 - std::log(x) / hr, -hs - 1) / (hr * x);
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type hpp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  const real_type hs = hshape<real_type>;
+  const real_type hr = hrate<real_type>;
+  return hs * std::pow((hr - std::log(x)) / hr, -hs) *
+    (-hr + hs + std::log(x) + 1) / (x * x * std::pow(hr - std::log(x), 2));
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type hppp(real_type x) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  const real_type hs = hshape<real_type>;
+  const real_type hr = hrate<real_type>;
+  return hs * std::pow((hr - std::log(x)) / hr, -hs) *
+    (hs * hs + 3 * hs + 2 * std::pow(hr - std::log(x), 2) - 3 * (hr - std::log(x)) * (hs + 1) + 2) / (x * x * x * std::pow(hr - std::log(x), 3));
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
   // Somewhat annoyingly, we can do this as constexpr in gcc but it's
   // not portable as sqrt() is not constexpr in any version of the
   // standard. It's possible that the compiler will work this out for
   // us?
-  const double tol = std::sqrt(std::numeric_limits<double>::epsilon());
-  const double p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
-  const double p1 = std::max(0.01, p0 - amt_targetted);
+  const real_type tol = std::sqrt(std::numeric_limits<real_type>::epsilon());
+  const real_type p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
+  const real_type p1 = std::max(static_cast<real_type>(0.01), p0 - amt_targetted);
   // There's a small optimisation that can be made here by avoiding
   // doing log(exp(x)) in h
-  const auto fn = [&](double x) {
+  const auto fn = [&](real_type x) {
                     const auto exp_x = std::exp(x);
-                    return f(exp_x) * g(exp_x) * std::pow(1 - x / hrate, -hshape) - p1;
+                    return f(exp_x) * g(exp_x) * std::pow(1 - x / hrate<real_type>, -hshape<real_type>) - p1;
                   };
-  return std::exp(lostturnip::find<double>(fn, -1e4, 0, tol, 1000));
+  return std::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }
 // [[odin.dust::compare_data(Ytravel = real_type, Yendog = real_type, Yunk = real_type)]]
 // [[odin.dust::compare_function]]
@@ -187,7 +236,8 @@ compare(const typename T::real_type * state,
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    const real_type delta = std::max(0.01, std::min(shared->delta1, shared->delta0 + shared->delta_slope * time));
+    const real_type delta = std::max(static_cast<real_type>(0.01),
+                                     std::min(shared->delta1, shared->delta0 + shared->delta_slope * time));
     constexpr real_type inf = std::numeric_limits<real_type>::infinity();
 
     const real_type t1 = newI < Y ? -inf : dust::density::binomial(Y, std::ceil(newI), delta, true);
@@ -243,8 +293,11 @@ public:
     real_type delta_slope;
     real_type etaf;
     real_type etag;
+    real_type fp1;
     real_type gamma0;
     real_type gamma1;
+    real_type gp1;
+    real_type hp1;
     real_type i0;
     real_type initial_E;
     real_type initial_Eseed;
@@ -394,12 +447,12 @@ public:
     real_type dot_thetah = thetah * theta_vacc_use;
     real_type red_f = (theta_vacc_use * fp(theta_vacc_use)) / (real_type) (theta_vacc * fp(theta_vacc));
     real_type red_g = (theta_vacc_use * gp(theta_vacc_use)) / (real_type) (theta_vacc * gp(theta_vacc));
-    real_type trateh = std::max(static_cast<real_type>(0), beta_next * MIh * shared->N * hp(1) * S_vacc_use);
+    real_type trateh = std::max(static_cast<real_type>(0), beta_next * MIh * shared->N * shared->hp1 * S_vacc_use);
     state_next[27] = S_vacc_use;
     state_next[23] = cuts + transmseed;
     state_next[26] = theta_vacc_use;
-    real_type MSf = dot_thetaf * S_vacc_use * fp(dot_thetaf) / (real_type) fp(1);
-    real_type MSg = dot_thetag * S_vacc_use * gp(dot_thetag) / (real_type) gp(1);
+    real_type MSf = dot_thetaf * S_vacc_use * fp(dot_thetaf) / (real_type) shared->fp1;
+    real_type MSg = dot_thetag * S_vacc_use * gp(dot_thetag) / (real_type) shared->gp1;
     real_type meanfield_delta_si_f = (dot_thetaf * fpp(dot_thetaf) / (real_type) fp(dot_thetaf));
     real_type meanfield_delta_si_g = (dot_thetag * gpp(dot_thetag) / (real_type) gp(dot_thetag));
     real_type meanfield_delta_si_h = (1 + dot_thetah * hpp(dot_thetah) / (real_type) hp(dot_thetah));
@@ -415,14 +468,14 @@ public:
     real_type MSIg_vacc = MSIg * vaccine_scale_g;
     real_type MSSf_vacc = MSSf * std::pow(vaccine_scale_f, 2);
     real_type MSSg_vacc = MSSg * std::pow(vaccine_scale_g, 2);
-    real_type dthetah = - dot_thetah * (transmh + transmseed) / (real_type) (shared->N * hp(1));
+    real_type dthetah = - dot_thetah * (transmh + transmseed) / (real_type) (shared->N * shared->hp1);
     real_type u1f = meanfield_delta_si_f;
     real_type u1g = meanfield_delta_si_g;
     real_type u1h = meanfield_delta_si_h;
     state_next[22] = cuth + transmh;
     real_type dSh = hp(dot_thetah) * dthetah;
-    real_type tratef = std::max(static_cast<real_type>(0), MSIf_vacc * shared->N * fp(1) * rf);
-    real_type trateg = std::max(static_cast<real_type>(0), MSIg_vacc * shared->N * gp(1) * rg);
+    real_type tratef = std::max(static_cast<real_type>(0), MSIf_vacc * shared->N * shared->fp1 * rf);
+    real_type trateg = std::max(static_cast<real_type>(0), MSIg_vacc * shared->N * shared->gp1 * rg);
     real_type u2h = hppp(dot_thetah) * std::pow(dot_thetah, 2) / (real_type) hp(dot_thetah) + 2 * dot_thetah * hpp(dot_thetah) / (real_type) hp(dot_thetah) + u1h;
     state_next[12] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetah + dthetah));
     real_type vf = u2f - std::pow(u1f, 2);
@@ -433,8 +486,8 @@ public:
     real_type delta_si_f = ((transmf == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_f, std::sqrt(vf / (real_type) transmf))));
     real_type delta_si_g = ((transmg == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_g, std::sqrt(vg / (real_type) transmg))));
     real_type delta_si_h = ((transmh == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_h, std::sqrt(vh / (real_type) transmh))));
-    real_type dthetaf = - dot_thetaf * transmf / (real_type) (MSf * shared->N * fp(1));
-    real_type dthetag = - dot_thetag * transmg / (real_type) (MSg * shared->N * gp(1));
+    real_type dthetaf = - dot_thetaf * transmf / (real_type) (MSf * shared->N * shared->fp1);
+    real_type dthetag = - dot_thetag * transmg / (real_type) (MSg * shared->N * shared->gp1);
     real_type newE = transmf + transmg + transmh + transmseed;
     real_type tauf = (transmf / (real_type) (transmf + transmg + transmh + transmseed));
     real_type taug = (transmg / (real_type) (transmf + transmg + transmh + transmseed));
@@ -447,15 +500,15 @@ public:
     real_type dSg = gp(dot_thetag) * dthetag;
     state_next[0] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetaf + dthetaf));
     state_next[6] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetag + dthetag));
-    real_type dMEf = - shared->gamma0 * MEf + (- dSf) * (delta_si_f / (real_type) fp(1)) + ((- dSg) + (- dSh)) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1));
-    real_type dMEg = - shared->gamma0 * MEg + (- dSg) * (delta_si_g / (real_type) gp(1)) + ((- dSf) + (- dSh)) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1));
-    real_type dMEh = - shared->gamma0 * MEh + (- dSh) * (delta_si_h / (real_type) hp(1)) + ((- dSf) + (- dSg)) * (dot_thetah * hp(dot_thetah) / (real_type) h(dot_thetah) / (real_type) hp(1));
-    real_type dMSEf = - shared->gamma1 * MSEf + 2 * shared->etaf * MSf * MEf - shared->etaf * MSEf + (- dSf) * (delta_si_f / (real_type) fp(1)) * (MSSf_vacc / (real_type) MSf) + (- dSg) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1)) * (MSSf_vacc / (real_type) MSf) + (- dSh) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1)) * (MSSf_vacc / (real_type) MSf);
-    real_type dMSEg = - shared->gamma0 * MSEg + 2 * shared->etag * MSg * MEg - shared->etag * MSEg + (- dSg) * (delta_si_g / (real_type) gp(1)) * (MSSg_vacc / (real_type) MSg) + (- dSf) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1)) * (MSSg_vacc / (real_type) MSg) + (- dSh) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1)) * (MSSg_vacc / (real_type) MSg);
-    real_type dMSIf = - rf * MSIf - shared->gamma1 * MSIf + shared->gamma0 * MSEf + 2 * shared->etaf * MSf * MIf - shared->etaf * MSIf + (- dSf) * (delta_si_f / (real_type) fp(1)) * (- MSIf_vacc / (real_type) MSf) + (- dSg) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1)) * (- MSIf_vacc / (real_type) MSf) + (- dSh) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1)) * (- MSIf_vacc / (real_type) MSf);
-    real_type dMSIg = - rg * MSIg - shared->gamma1 * MSIg + shared->gamma0 * MSEg + 2 * shared->etag * MSg * MIg - shared->etag * MSIg + (- dSg) * (delta_si_g / (real_type) gp(1)) * (- MSIg_vacc / (real_type) MSg) + (- dSf) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1)) * (- MSIg_vacc / (real_type) MSg) + (- dSh) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1)) * (- MSIg_vacc / (real_type) MSg);
-    real_type dMSSf = 1 * shared->etaf * std::pow(MSf, 2) - shared->etaf * MSSf_vacc - (- dSf) * (delta_si_f / (real_type) fp(1)) * MSSf_vacc / (real_type) MSf - ((- dSg) + (- dSh)) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) fp(1)) * MSSf_vacc / (real_type) MSf;
-    real_type dMSSg = 1 * shared->etag * std::pow(MSg, 2) - shared->etag * MSSg_vacc - (- dSg) * (delta_si_g / (real_type) gp(1)) * MSSg_vacc / (real_type) MSg - ((- dSf) + (- dSh)) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) gp(1)) * MSSg_vacc / (real_type) MSg;
+    real_type dMEf = - shared->gamma0 * MEf + (- dSf) * (delta_si_f / (real_type) shared->fp1) + ((- dSg) + (- dSh)) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1);
+    real_type dMEg = - shared->gamma0 * MEg + (- dSg) * (delta_si_g / (real_type) shared->gp1) + ((- dSf) + (- dSh)) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1);
+    real_type dMEh = - shared->gamma0 * MEh + (- dSh) * (delta_si_h / (real_type) shared->hp1) + ((- dSf) + (- dSg)) * (dot_thetah * hp(dot_thetah) / (real_type) h(dot_thetah) / (real_type) shared->hp1);
+    real_type dMSEf = - shared->gamma1 * MSEf + 2 * shared->etaf * MSf * MEf - shared->etaf * MSEf + (- dSf) * (delta_si_f / (real_type) shared->fp1) * (MSSf_vacc / (real_type) MSf) + (- dSg) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1) * (MSSf_vacc / (real_type) MSf) + (- dSh) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1) * (MSSf_vacc / (real_type) MSf);
+    real_type dMSEg = - shared->gamma0 * MSEg + 2 * shared->etag * MSg * MEg - shared->etag * MSEg + (- dSg) * (delta_si_g / (real_type) shared->gp1) * (MSSg_vacc / (real_type) MSg) + (- dSf) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1) * (MSSg_vacc / (real_type) MSg) + (- dSh) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1) * (MSSg_vacc / (real_type) MSg);
+    real_type dMSIf = - rf * MSIf - shared->gamma1 * MSIf + shared->gamma0 * MSEf + 2 * shared->etaf * MSf * MIf - shared->etaf * MSIf + (- dSf) * (delta_si_f / (real_type) shared->fp1) * (- MSIf_vacc / (real_type) MSf) + (- dSg) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1) * (- MSIf_vacc / (real_type) MSf) + (- dSh) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1) * (- MSIf_vacc / (real_type) MSf);
+    real_type dMSIg = - rg * MSIg - shared->gamma1 * MSIg + shared->gamma0 * MSEg + 2 * shared->etag * MSg * MIg - shared->etag * MSIg + (- dSg) * (delta_si_g / (real_type) shared->gp1) * (- MSIg_vacc / (real_type) MSg) + (- dSf) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1) * (- MSIg_vacc / (real_type) MSg) + (- dSh) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1) * (- MSIg_vacc / (real_type) MSg);
+    real_type dMSSf = 1 * shared->etaf * std::pow(MSf, 2) - shared->etaf * MSSf_vacc - (- dSf) * (delta_si_f / (real_type) shared->fp1) * MSSf_vacc / (real_type) MSf - ((- dSg) + (- dSh)) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1) * MSSf_vacc / (real_type) MSf;
+    real_type dMSSg = 1 * shared->etag * std::pow(MSg, 2) - shared->etag * MSSg_vacc - (- dSg) * (delta_si_g / (real_type) shared->gp1) * MSSg_vacc / (real_type) MSg - ((- dSf) + (- dSh)) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1) * MSSg_vacc / (real_type) MSg;
     state_next[15] = E_next;
     state_next[29] = cumulative_partners_next;
     state_next[2] = std::max(static_cast<real_type>(0), MEf + dMEf);
@@ -695,6 +748,9 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   using real_type = typename model::real_type;
   auto shared = std::make_shared<model::shared_type>();
   model::internal_type internal;
+  shared->fp1 = fp(static_cast<real_type>(1));
+  shared->gp1 = gp(static_cast<real_type>(1));
+  shared->hp1 = hp(static_cast<real_type>(1));
   shared->initial_Eseed = 0;
   shared->initial_MEf = 0;
   shared->initial_MEg = 0;

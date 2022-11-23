@@ -16,7 +16,8 @@ compare(const typename T::real_type * state,
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    const real_type delta = std::max(0.01, std::min(odin(delta1), odin(delta0) + odin(delta_slope) * time));
+    const real_type delta = std::max(static_cast<real_type>(0.01),
+                                     std::min(odin(delta1), odin(delta0) + odin(delta_slope) * time));
     constexpr real_type inf = std::numeric_limits<real_type>::infinity();
 
     const real_type t1 = newI < Y ? -inf : dust::density::binomial(Y, std::ceil(newI), delta, true);

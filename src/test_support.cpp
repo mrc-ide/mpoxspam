@@ -1,4 +1,5 @@
 #include <cpp11.hpp>
+#include <dust/random/cuda_compatibility.hpp>
 #include "support.hpp"
 
 [[cpp11::register]]

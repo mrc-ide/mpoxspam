@@ -154,7 +154,27 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
                   };
   return std::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }
-// [[odin.dust::compare_data(Ytravel = real_type, Yendog = real_type, Yunk = real_type)]]
+// There's a bit of a fight here with min, and none of this is going
+// to be namespace-safe, so it's something that we should fix up
+// later...
+template <typename T>
+__host__ __device__
+T min(const T& a, const T&b) {
+  return a < b ? a : b;
+}
+
+template <typename T>
+__host__ __device__
+T max(const T& a, const T&b) {
+  return a > b ? a : b;
+}
+
+template <typename real_type>
+constexpr real_type inf = std::numeric_limits<real_type>::infinity();
+
+// [[odin.dust::compare_data(Ytravel = real_type)]]
+// [[odin.dust::compare_data(Yendog = real_type)]]
+// [[odin.dust::compare_data(Yunk = real_type)]]
 // [[odin.dust::compare_function]]
 template <typename T>
 typename T::real_type
@@ -171,16 +191,15 @@ compare(const typename T::real_type * state,
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    const real_type delta = std::max(static_cast<real_type>(0.01),
-                                     std::min(shared->delta1, shared->delta0 + shared->delta_slope * state[30]));
-    constexpr real_type inf = std::numeric_limits<real_type>::infinity();
+    const real_type delta = max(static_cast<real_type>(0.01),
+                                min(shared->delta1, shared->delta0 + shared->delta_slope * state[30]));
 
-    const real_type t1 = model_newI < Y ? -inf : dust::density::binomial(Y, std::ceil(model_newI), delta, true);
+    const real_type t1 = model_newI < Y ? -inf<real_type> : dust::density::binomial(Y, std::ceil(model_newI), delta, true);
 
     real_type t2 = 0;
     if (Yknown > 0) {
       const real_type model_newItotal = model_newIseed + model_newI;
-      t2 = model_newItotal == 0 ? -inf : dust::density::binomial(std::ceil(data.Ytravel), std::ceil(Yknown), model_newIseed / model_newItotal, true);
+      t2 = model_newItotal == 0 ? -inf<real_type> : dust::density::binomial(std::ceil(data.Ytravel), std::ceil(Yknown), model_newIseed / model_newItotal, true);
     }
     ret = t1 + t2;
   }

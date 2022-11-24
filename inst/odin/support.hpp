@@ -1,6 +1,27 @@
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 
+// There's a bit of a fight here with min, and none of this is going
+// to be namespace-safe, so it's something that we should fix up
+// later...
+template <typename T>
+__host__ __device__
+T min(const T& a, const T&b) {
+  return a < b ? a : b;
+}
+
+template <typename T>
+__host__ __device__
+T max(const T& a, const T&b) {
+  return a > b ? a : b;
+}
+
+template <typename real_type>
+constexpr real_type inf = std::numeric_limits<real_type>::infinity();
+
+template <typename real_type>
+constexpr real_type eps = std::numeric_limits<real_type>::epsilon();
+
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
@@ -121,9 +142,9 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
   // not portable as sqrt() is not constexpr in any version of the
   // standard. It's possible that the compiler will work this out for
   // us?
-  const real_type tol = std::sqrt(std::numeric_limits<real_type>::epsilon());
+  const real_type tol = std::sqrt(eps<real_type>);
   const real_type p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
-  const real_type p1 = std::max(static_cast<real_type>(0.01), p0 - amt_targetted);
+  const real_type p1 = max(static_cast<real_type>(0.01), p0 - amt_targetted);
   // There's a small optimisation that can be made here by avoiding
   // doing log(exp(x)) in h
   const auto fn = [&](real_type x) {

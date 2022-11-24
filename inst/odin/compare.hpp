@@ -1,21 +1,3 @@
-// There's a bit of a fight here with min, and none of this is going
-// to be namespace-safe, so it's something that we should fix up
-// later...
-template <typename T>
-__host__ __device__
-T min(const T& a, const T&b) {
-  return a < b ? a : b;
-}
-
-template <typename T>
-__host__ __device__
-T max(const T& a, const T&b) {
-  return a > b ? a : b;
-}
-
-template <typename real_type>
-constexpr real_type inf = std::numeric_limits<real_type>::infinity();
-
 // [[odin.dust::compare_data(Ytravel = real_type)]]
 // [[odin.dust::compare_data(Yendog = real_type)]]
 // [[odin.dust::compare_data(Yunk = real_type)]]

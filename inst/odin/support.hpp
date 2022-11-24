@@ -1,3 +1,4 @@
+// [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 
 // [[odin.dust::register]]

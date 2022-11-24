@@ -85,6 +85,7 @@ template <typename T>
 __host__ __device__ T odin_max(T x, T y) {
   return x > y ? x : y;
 }
+// [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 
 // [[odin.dust::register]]
@@ -228,24 +229,23 @@ compare(const typename T::real_type * state,
         std::shared_ptr<const typename T::shared_type> shared,
         typename T::rng_state_type& rng_state) {
   typedef typename T::real_type real_type;
-  const real_type newI = state[17];
-  const real_type newIseed = state[19];
-  const real_type time = state[30];
+  const real_type model_newI = state[17];
+  const real_type model_newIseed = state[19];
   const real_type Yknown = data.Ytravel + data.Yendog;
   const real_type Y = std::ceil(Yknown + data.Yunk);
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
     const real_type delta = std::max(static_cast<real_type>(0.01),
-                                     std::min(shared->delta1, shared->delta0 + shared->delta_slope * time));
+                                     std::min(shared->delta1, shared->delta0 + shared->delta_slope * state[30]));
     constexpr real_type inf = std::numeric_limits<real_type>::infinity();
 
-    const real_type t1 = newI < Y ? -inf : dust::density::binomial(Y, std::ceil(newI), delta, true);
+    const real_type t1 = model_newI < Y ? -inf : dust::density::binomial(Y, std::ceil(model_newI), delta, true);
 
     real_type t2 = 0;
     if (Yknown > 0) {
-      const real_type newItotal = newIseed + newI;
-      t2 = newItotal == 0 ? -inf : dust::density::binomial(std::ceil(data.Ytravel), std::ceil(Yknown), newIseed / newItotal, true);
+      const real_type model_newItotal = model_newIseed + model_newI;
+      t2 = model_newItotal == 0 ? -inf : dust::density::binomial(std::ceil(data.Ytravel), std::ceil(Yknown), model_newIseed / model_newItotal, true);
     }
     ret = t1 + t2;
   }
@@ -477,7 +477,7 @@ public:
     real_type tratef = std::max(static_cast<real_type>(0), MSIf_vacc * shared->N * shared->fp1 * rf);
     real_type trateg = std::max(static_cast<real_type>(0), MSIg_vacc * shared->N * shared->gp1 * rg);
     real_type u2h = hppp(dot_thetah) * std::pow(dot_thetah, 2) / (real_type) hp(dot_thetah) + 2 * dot_thetah * hpp(dot_thetah) / (real_type) hp(dot_thetah) + u1h;
-    state_next[12] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetah + dthetah));
+    state_next[12] = std::max(static_cast<real_type>(1.0000000000000001e-09), std::min(static_cast<real_type>(1), thetah + dthetah));
     real_type vf = u2f - std::pow(u1f, 2);
     real_type vg = u2g - std::pow(u1g, 2);
     real_type transmf = dust::random::poisson<real_type>(rng_state, tratef);
@@ -498,8 +498,8 @@ public:
     real_type cumulative_partners_next = (1 + shared->etaf * shared->cumulative_partners_days) * (tauf * meanfield_delta_si_f + taug * dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) + tauh * dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf)) + (1 + shared->etag * shared->cumulative_partners_days) * (tauf * dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) + taug * meanfield_delta_si_g + tauh * dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag)) + shared->cumulative_partners_days * (tauf * dot_thetah * hp(dot_thetah) / (real_type) h(dot_thetah) + taug * dot_thetah * hp(dot_thetah) / (real_type) h(dot_thetah) + tauh * meanfield_delta_si_h);
     real_type dSf = fp(dot_thetaf) * dthetaf;
     real_type dSg = gp(dot_thetag) * dthetag;
-    state_next[0] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetaf + dthetaf));
-    state_next[6] = std::max(1.0000000000000001e-09, std::min(static_cast<real_type>(1), thetag + dthetag));
+    state_next[0] = std::max(static_cast<real_type>(1.0000000000000001e-09), std::min(static_cast<real_type>(1), thetaf + dthetaf));
+    state_next[6] = std::max(static_cast<real_type>(1.0000000000000001e-09), std::min(static_cast<real_type>(1), thetag + dthetag));
     real_type dMEf = - shared->gamma0 * MEf + (- dSf) * (delta_si_f / (real_type) shared->fp1) + ((- dSg) + (- dSh)) * (dot_thetaf * fp(dot_thetaf) / (real_type) f(dot_thetaf) / (real_type) shared->fp1);
     real_type dMEg = - shared->gamma0 * MEg + (- dSg) * (delta_si_g / (real_type) shared->gp1) + ((- dSf) + (- dSh)) * (dot_thetag * gp(dot_thetag) / (real_type) g(dot_thetag) / (real_type) shared->gp1);
     real_type dMEh = - shared->gamma0 * MEh + (- dSh) * (delta_si_h / (real_type) shared->hp1) + ((- dSf) + (- dSg)) * (dot_thetah * hp(dot_thetah) / (real_type) h(dot_thetah) / (real_type) shared->hp1);

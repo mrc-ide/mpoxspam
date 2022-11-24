@@ -2,11 +2,6 @@ test_that("can run the gpu model on the cpu", {
   skip_if_not_installed("odin.dust")
   skip_if_not_installed("lostturnip")
 
-  ## Looks like next step:
-  ## - get dust, odin.dust to generate C++14 configuration
-  ## - just remove the grepl check in odin.dust?
-  ## - work out why we get some conflicting unpacking of newI, newIseed and time - this looks like the compare?
-
   gen <- compile_gpu(gpu = FALSE, gpu_generate = TRUE, verbose = FALSE)
   expect_equal(gen$public_methods$name(), "m4_2")
 
@@ -24,4 +19,29 @@ test_that("can run the gpu model on the cpu", {
   res_gpu <- mod_gpu$run(end)
 
   expect_equal(res_gpu, res_cpu)
+})
+
+
+test_that("Can run the gpu compare on the cpu", {
+  skip_if_not_installed("odin.dust")
+  skip_if_not_installed("lostturnip")
+
+  gen <- compile_gpu(gpu = FALSE, gpu_generate = TRUE, verbose = FALSE)
+
+  pars <- reference_pars()
+  data <- filter_data()
+
+  np <- 10
+  mod_cpu <- gen$new(pars, 0, np, seed = 1L)
+  mod_gpu <- gen$new(pars, 0, np, seed = 1L, gpu_config = 0)
+  mod_cpu$set_data(dust::dust_data(data, "time_end"))
+  mod_gpu$set_data(dust::dust_data(data, "time_end"))
+
+  for (i in seq_len(nrow(data))) {
+    y_gpu <- mod_gpu$run(data$day_end[[i]])
+    y_cpu <- mod_cpu$run(data$day_end[[i]])
+    expect_equal(y_gpu, y_cpu)
+    expect_equal(mod_gpu$compare_data(),
+                 mod_cpu$compare_data())
+  }
 })

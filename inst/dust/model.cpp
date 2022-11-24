@@ -20,6 +20,7 @@ template <typename T>
 __host__ __device__ T odin_max(T x, T y) {
   return x > y ? x : y;
 }
+// [[odin.dust::cpp_std(C++14)]]
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 

@@ -1,3 +1,4 @@
+// [[odin.dust::cpp_std(C++14)]]
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 

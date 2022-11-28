@@ -67,7 +67,7 @@ model_compare <- function(state, observed, pars) {
 ##' @title Index of model variables
 ##'
 ##' @param info The result of running the `$info()` method on an
-##'   initialised [basic] model
+##'   initialised [model]
 ##'
 ##' @return A list with element `run`, indicating the locations of the
 ##'   compartments used in [model_compare]

@@ -1,5 +1,5 @@
 R/cpp11.R
 R/dust.R
-src/m4_2.cpp
+src/model.cpp
 src/cpp11.cpp
 inst/odin/support.hpp

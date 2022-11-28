@@ -1,4 +1,4 @@
-m4_2_compare <- function(state, observed, pars) {
+model_compare <- function(state, observed, pars) {
   ## Unpack modelled:
   newI <- state["newI", ]
   newIseed <- state["newIseed", ]
@@ -34,7 +34,7 @@ m4_2_compare <- function(state, observed, pars) {
   t1 + t2
 }
 
-m4_2_index <- function(info) {
+model_index <- function(info) {
   list(run = c(newI = info$index$newI,
                newIseed = info$index$newIseed,
                time = info$index$time),
@@ -42,9 +42,9 @@ m4_2_index <- function(info) {
 }
 
 
-m4_2_filter <- function(data, ..., use_compiled_compare = FALSE) {
-  compare <- if (use_compiled_compare) NULL else m4_2_compare
-  mcstate::particle_filter$new(data, m4_2, ...,
+model_filter <- function(data, ..., use_compiled_compare = FALSE) {
+  compare <- if (use_compiled_compare) NULL else model_compare
+  mcstate::particle_filter$new(data, model, ...,
                                compare = compare,
-                               index = m4_2_index)
+                               index = model_index)
 }

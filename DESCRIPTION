@@ -25,7 +25,7 @@ Suggests:
     odin.dust,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-SystemRequirements: C++11
+SystemRequirements: C++14
 Remotes:
     mrc-ide/dust,
     mrc-ide/lostturnip@prototype,

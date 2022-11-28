@@ -6,6 +6,8 @@
 [![codecov.io](https://codecov.io/github/mrc-ide/monkeyspam/coverage.svg?branch=main)](https://codecov.io/github/mrc-ide/monkeyspam?branch=main)
 <!-- badges: end -->
 
+Stochastic pair approximation modeol for Mpox virus; see [`spam.mpxv`](https://github.com/mrc-ide/spam.mpxv) for original implementation using [`pomp`](https://cran.r-project.org/package=pomp).
+
 ## Installation
 
 To install `monkeyspam`:

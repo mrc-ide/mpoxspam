@@ -28,7 +28,7 @@ Suggests:
 Config/testthat/edition: 3
 SystemRequirements: C++14
 Remotes:
-    mrc-ide/dust@mrc-3831,
+    mrc-ide/dust@mrc-3841,
     mrc-ide/lostturnip@cuda,
     mrc-ide/mcstate,
     mrc-ide/odin.dust@mrc-3829

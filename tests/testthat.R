@@ -1,4 +1,4 @@
 library(testthat)
-library(monkeyspam)
+library(mpoxspam)
 
-test_check("monkeyspam")
+test_check("mpoxspam")

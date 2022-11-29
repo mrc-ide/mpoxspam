@@ -94,10 +94,14 @@ model_index <- function(info) {
 ##'   the compiled compare function rather than [model_compare]. This
 ##'   will likely be faster if several threads are used.
 ##'
+##' @param generator Alternative generator to use, you'll need this if
+##'   using a GPU version.
+##'
 ##' @export
-model_filter <- function(data, ..., use_compiled_compare = FALSE) {
+model_filter <- function(data, ..., generator = NULL,
+                         use_compiled_compare = FALSE) {
   compare <- if (use_compiled_compare) NULL else model_compare
-  mcstate::particle_filter$new(data, model, ...,
+  mcstate::particle_filter$new(data, model = generator %||% model, ...,
                                compare = compare,
                                index = model_index)
 }

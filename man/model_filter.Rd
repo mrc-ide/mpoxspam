@@ -4,12 +4,15 @@
 \alias{model_filter}
 \title{Create particle filter}
 \usage{
-model_filter(data, ..., use_compiled_compare = FALSE)
+model_filter(data, ..., generator = NULL, use_compiled_compare = FALSE)
 }
 \arguments{
 \item{data}{Data to use}
 
 \item{...}{Additional arguments to \link[mcstate:particle_filter]{mcstate::particle_filter}'s constructor}
+
+\item{generator}{Alternative generator to use, you'll need this if
+using a GPU version.}
 
 \item{use_compiled_compare}{Logical, indicating if we should use
 the compiled compare function rather than \link{model_compare}. This

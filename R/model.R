@@ -77,7 +77,11 @@ model_index <- function(info) {
   list(run = c(newI = info$index$newI,
                newIseed = info$index$newIseed,
                time = info$index$time),
-       state = integer(0))
+       state = c(cumulative_partners = info$index$cumulative_partners,
+                 seedrate = info$index$seedrate,
+                 I = info$index$I,
+                 newI = info$index$newI,
+                 newIseed = info$index$newIseed))
 }
 
 

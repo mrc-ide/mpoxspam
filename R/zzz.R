@@ -1,2 +1,2 @@
-##' @useDynLib monkeyspam, .registration = TRUE
+##' @useDynLib mpoxspam, .registration = TRUE
 NULL

@@ -1,5 +1,5 @@
-Package: monkeyspam
-Title: Pair Approximation Transmission Model of Monkeypox
+Package: mpoxspam
+Title: Pair Approximation Transmission Model of Mpox
 Version: 0.1.0
 Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
                     email = "l.whittles@imperial.ac.uk"),
@@ -7,13 +7,13 @@ Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
              person("Erik", "Volz", role = c("aut")),
              person("Imperial College of Science, Technology and Medicine",
                     role = "cph"))
-Description: Pair approximation transmission model of monkeypox.
+Description: Pair approximation transmission model of mpox.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
-URL: https://github.com/mrc-ide/monkeyspam
-BugReports: https://github.com/mrc-ide/monkeyspam/issues
+RoxygenNote: 7.2.2
+URL: https://github.com/mrc-ide/mpoxspam
+BugReports: https://github.com/mrc-ide/mpoxspam/issues
 Imports:
     dust,
     mcstate (>= 0.9.13)
@@ -25,7 +25,7 @@ Suggests:
     odin.dust,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-SystemRequirements: C++11
+SystemRequirements: C++14
 Remotes:
     mrc-ide/dust,
     mrc-ide/lostturnip@prototype,

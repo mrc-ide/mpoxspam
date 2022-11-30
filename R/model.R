@@ -44,22 +44,31 @@ model_compare <- function(state, observed, pars) {
     return(rep_len(0, n_particles))
   }
 
-  t1 <- rep_len(-Inf, n_particles)
-  i <- newI >= Y
-  t1[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
+  if (use_nbinom) {
+    ll_cases <- ll_nbinom(Y, cases, kappa = pars$kappa_cases, pars$exp_noise)
 
-  if (Ytravel + Yendog > 0) {
-    i <- newIseed + newI > 0
-    t2 <- rep_len(-Inf, n_particles)
-    t2[i] <- dbinom(ceiling(Ytravel),
-                    size = ceiling(Ytravel + Yendog),
-                    prob = newIseed[i] / (newIseed[i] + newI[i]), log = TRUE)
+    ll_travel <- ll_binom(ceiling(Ytravel),
+                          ceiling(Ytravel + Yendog),
+                          newIseed / (newIseed + newI), pars$exp_noise)
   } else {
-    t2 <- 0
-  }
+    ll_cases <- rep_len(-Inf, n_particles)
+    i <- newI >= Y
+    ll_cases[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
 
-  t1 + t2
+    if (Ytravel + Yendog > 0) {
+      i <- newIseed + newI > 0
+      ll_travel <- rep_len(-Inf, n_particles)
+      ll_travel[i] <- dbinom(
+        ceiling(Ytravel),
+        size = ceiling(Ytravel + Yendog),
+        prob = newIseed[i] / (newIseed[i] + newI[i]), log = TRUE)
+    } else {
+      ll_travel <- 0
+    }
+  }
+  ll_cases + ll_travel
 }
+
 
 ##' Index of "interesting" elements for the model. This function
 ##' conforms to the mcstate interface.

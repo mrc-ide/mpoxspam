@@ -1,21 +1,7 @@
 // [[odin.dust::cpp_std(C++14)]]
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
-
-// There's a bit of a fight here with min, and none of this is going
-// to be namespace-safe, so it's something that we should fix up
-// later...
-template <typename T>
-__host__ __device__
-T min(const T& a, const T&b) {
-  return a < b ? a : b;
-}
-
-template <typename T>
-__host__ __device__
-T max(const T& a, const T&b) {
-  return a > b ? a : b;
-}
+#include <dust/random/math.hpp>
 
 template <typename real_type>
 constexpr real_type inf = std::numeric_limits<real_type>::infinity();
@@ -100,7 +86,7 @@ real_type h(real_type x) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
   const real_type hs = hshape<real_type>;
   const real_type hr = hrate<real_type>;
-  return std::pow(1 - std::log(x) / hr, -hs);
+  return dust::math::pow(1 - dust::math::log(x) / hr, -hs);
 }
 
 // [[odin.dust::register]]
@@ -110,7 +96,7 @@ real_type hp(real_type x) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
   const real_type hs = hshape<real_type>;
   const real_type hr = hrate<real_type>;
-  return hs * std::pow(1 - std::log(x) / hr, -hs - 1) / (hr * x);
+  return hs * dust::math::pow(1 - dust::math::log(x) / hr, -hs - 1) / (hr * x);
 }
 
 // [[odin.dust::register]]
@@ -120,8 +106,8 @@ real_type hpp(real_type x) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
   const real_type hs = hshape<real_type>;
   const real_type hr = hrate<real_type>;
-  return hs * std::pow((hr - std::log(x)) / hr, -hs) *
-    (-hr + hs + std::log(x) + 1) / (x * x * std::pow(hr - std::log(x), 2));
+  return hs * dust::math::pow((hr - dust::math::log(x)) / hr, -hs) *
+    (-hr + hs + dust::math::log(x) + 1) / (x * x * dust::math::pow(hr - dust::math::log(x), 2));
 }
 
 // [[odin.dust::register]]
@@ -131,8 +117,8 @@ real_type hppp(real_type x) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
   const real_type hs = hshape<real_type>;
   const real_type hr = hrate<real_type>;
-  return hs * std::pow((hr - std::log(x)) / hr, -hs) *
-    (hs * hs + 3 * hs + 2 * std::pow(hr - std::log(x), 2) - 3 * (hr - std::log(x)) * (hs + 1) + 2) / (x * x * x * std::pow(hr - std::log(x), 3));
+  return hs * dust::math::pow((hr - dust::math::log(x)) / hr, -hs) *
+    (hs * hs + 3 * hs + 2 * dust::math::pow(hr - dust::math::log(x), 2) - 3 * (hr - dust::math::log(x)) * (hs + 1) + 2) / (x * x * x * dust::math::pow(hr - dust::math::log(x), 3));
 }
 
 // [[odin.dust::register]]
@@ -143,14 +129,14 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
   // not portable as sqrt() is not constexpr in any version of the
   // standard. It's possible that the compiler will work this out for
   // us?
-  const real_type tol = std::sqrt(eps<real_type>);
+  const real_type tol = dust::math::sqrt(eps<real_type>);
   const real_type p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
-  const real_type p1 = max(static_cast<real_type>(0.01), p0 - amt_targetted);
+  const real_type p1 = dust::math::max(static_cast<real_type>(0.01), p0 - amt_targetted);
   // There's a small optimisation that can be made here by avoiding
   // doing log(exp(x)) in h
   const auto fn = [&](real_type x) {
-                    const auto exp_x = std::exp(x);
-                    return f(exp_x) * g(exp_x) * std::pow(1 - x / hrate<real_type>, -hshape<real_type>) - p1;
+                    const auto exp_x = dust::math::exp(x);
+                    return f(exp_x) * g(exp_x) * dust::math::pow(1 - x / hrate<real_type>, -hshape<real_type>) - p1;
                   };
-  return std::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
+  return dust::math::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }

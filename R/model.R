@@ -44,8 +44,8 @@ model_compare <- function(state, observed, pars) {
     return(rep_len(0, n_particles))
   }
 
-  if (use_nbinom) {
-    ll_cases <- ll_nbinom(Y, cases, kappa = pars$kappa_cases, pars$exp_noise)
+  if (pars$use_nbinom) {
+    ll_cases <- ll_nbinom(Y, newI, kappa = pars$kappa_cases, pars$exp_noise)
     ll_travel <- ll_binom(Ytravel, Yendog, newIseed, newI, pars$exp_noise)
   } else {
     ll_cases <- rep_len(-Inf, n_particles)

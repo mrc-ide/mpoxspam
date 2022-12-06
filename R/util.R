@@ -18,10 +18,12 @@ ll_binom <- function(data_a, data_b, model_a, model_b, exp_noise) {
   if (is.na(data_a) || is.na(data_b) ) {
     return(numeric(length(model)))
   }
-
   noise_a <- rexp(length(model_a), exp_noise)
   noise_b <- rexp(length(model_b), exp_noise)
   prob <- (model_a + noise_a) / (model_a + model_b + noise_a + noise_b)
+  if (exp_noise == Inf) {
+    prob[model_a == 0 & model_b == 0] <- 0
+  }
   dbinom(data_a, data_a + data_b, prob, log = TRUE)
 }
 

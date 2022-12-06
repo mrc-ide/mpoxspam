@@ -45,9 +45,6 @@ etag <- user(0.01) #Anderson Epidemiology 2021
 N <- user(750e3)
 ## N <- user(N) #
 i0 <- user(0)
-delta0 <- user(.50) # ignore.unused
-delta1 <- user(.50) # ignore.unused
-delta_slope <- user(0.0) # ignore.unused
 seedrate0 <- user(0.75)
 seedrate_sd <- user(0.75) #2.99 #sd of random walk of daily diff in seedrate
 vacc_freq <- user(1)
@@ -55,6 +52,15 @@ vacc_start_day <- user(91)
 vacc_targetted <- user(.8) # prop vacc targetted vs random
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
+
+## Compare function parameters
+delta0 <- user(.50) # ignore.unused
+delta1 <- user(.50) # ignore.unused
+delta_slope <- user(0.0) # ignore.unused
+exp_noise <- user(1e6) # ignore.unused
+kappa_cases <- user(5) # ignore.unused
+use_nbinom <- user(0, min = 0, max = 1, integer = TRUE) # ignore.unused
+
 
 ## These two were parameters but with derived defaults; could make
 ## these user again and move that logic into R

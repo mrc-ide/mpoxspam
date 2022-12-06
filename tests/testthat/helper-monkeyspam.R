@@ -109,7 +109,7 @@ reference_pars <- function() {
        ## New things added by us:
        exp_noise = 1e6,
        kappa_cases = 1,
-       use_nbinom = FALSE)
+       use_nbinom = 0)
 }
 
 

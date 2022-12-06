@@ -14,10 +14,18 @@ ll_nbinom <- function(data, model, kappa, exp_noise) {
 }
 
 
-ll_binom <- function(data_x, data_size, model, exp_noise) {
-  if (is.na(data_size) || is.na(data_x) ) {
+ll_binom <- function(data_a, data_b, model_a, model_b, exp_noise) {
+  if (is.na(data_a) || is.na(data_b) ) {
     return(numeric(length(model)))
   }
-  prob <- model + rexp(length(model), rate = exp_noise)
-  dbinom(data_x, data_size, prob, log = TRUE)
+
+  noise_a <- rexp(length(model_a), exp_noise)
+  noise_b <- rexp(length(model_b), exp_noise)
+  prob <- (model_a + noise_a) / (model_a + model_b + noise_a + noise_b)
+  dbinom(data_a, data_a + data_b, prob, log = TRUE)
+}
+
+
+logit <- function(x) {
+  log(x / (1 - x))
 }

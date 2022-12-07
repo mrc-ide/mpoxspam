@@ -15,7 +15,7 @@ RoxygenNote: 7.2.2
 URL: https://github.com/mrc-ide/mpoxspam
 BugReports: https://github.com/mrc-ide/mpoxspam/issues
 Imports:
-    dust (>= 0.12.6),
+    dust (>= 0.12.7),
     mcstate (>= 0.9.13)
 LinkingTo:
     cpp11,
@@ -23,12 +23,12 @@ LinkingTo:
     lostturnip (>= 0.1.2)
 Suggests:
     lostturnip (>= 0.1.2),
-    odin.dust (>= 0.2.28),
+    odin.dust (>= 0.2.29),
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 SystemRequirements: C++14
 Remotes:
-    mrc-ide/dust@mrc-3841,
-    mrc-ide/lostturnip@cuda,
+    mrc-ide/dust,
+    mrc-ide/lostturnip,
     mrc-ide/mcstate,
-    mrc-ide/odin.dust@mrc-3829
+    mrc-ide/odin.dust

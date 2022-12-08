@@ -34,5 +34,5 @@ test_that("can run filter with negative/beta binomial likelihood", {
   set.seed(1)
   filter <- model_filter(dat, n_particles = 100, n_threads = 1, seed = 1L)
   ll <- filter$run(pars)
-  expect_equal(ll, -267.783889194091)
+  expect_equal(ll, -261.378898919156)
 })

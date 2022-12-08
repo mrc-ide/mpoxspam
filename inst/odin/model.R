@@ -94,8 +94,8 @@ dseedrate_next <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else
 seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next)
 beta_next <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
 
-MSf <- dot_thetaf * S_vacc_use * fp(dot_thetaf) / fp(1)
-MSg <- dot_thetag * S_vacc_use * gp(dot_thetag) / gp(1)
+MSf <- dot_thetaf * S_vacc_use * fp(dot_thetaf) / fp1
+MSg <- dot_thetag * S_vacc_use * gp(dot_thetag) / gp1
 # MSh <- dot_thetah * S_vacc_use * hp(dot_thetah) / hp(1) # never used
 
 ## factor 1.5 / 7 is act rate per day; factor 1.5 b/c more contacts
@@ -105,9 +105,9 @@ rg <- beta_next * 1 / 7
 
 ## TODO: In the pomp code, there was some concern that this would
 ## become poorly defined and go NA or non-finite
-tratef <- max(as.numeric(0), MSIf_vacc * N * fp(1) * rf)
+tratef <- max(as.numeric(0), MSIf_vacc * N * fp1 * rf)
 transmf <- rpois(tratef)
-dthetaf <- -dot_thetaf * transmf / (MSf * N * fp(1))
+dthetaf <- -dot_thetaf * transmf / (MSf * N * fp1)
 dSf <- fp(dot_thetaf) * dthetaf # note prop to transm
 meanfield_delta_si_f <- (dot_thetaf * fpp(dot_thetaf) / fp(dot_thetaf))
 u1f <- meanfield_delta_si_f
@@ -116,9 +116,9 @@ vf <- u2f - u1f^2
 delta_si_f <- (if (transmf == 0) 0
                else rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))
 
-trateg <- max(as.numeric(0), MSIg_vacc * N * gp(1) * rg)
+trateg <- max(as.numeric(0), MSIg_vacc * N * gp1 * rg)
 transmg <- rpois(trateg)
-dthetag <- -dot_thetag * transmg / (MSg * N * gp(1))
+dthetag <- -dot_thetag * transmg / (MSg * N * gp1)
 dSg <- gp(dot_thetag) * dthetag # note prop to transm
 meanfield_delta_si_g <- (dot_thetag * gpp(dot_thetag) / gp(dot_thetag))
 u1g <- meanfield_delta_si_g
@@ -129,10 +129,10 @@ delta_si_g <- (if (transmg == 0) 0
 
 transmseed <- rpois(seedrate_next)
 
-trateh <- max(as.numeric(0), beta_next * MIh * N * hp(1) * S_vacc_use)
+trateh <- max(as.numeric(0), beta_next * MIh * N * hp1 * S_vacc_use)
 transmh <- rpois(trateh) # note S_vacc here, because there is no MSI in MFSH model
 
-dthetah <- -dot_thetah * (transmh + transmseed) / (N * hp(1)) # seeding happens here
+dthetah <- -dot_thetah * (transmh + transmseed) / (N * hp1) # seeding happens here
 dSh <- hp(dot_thetah) * dthetah # note prop to transm
 # may also need this separated into seed and non-seed components:
 # dSh0 <- hp(dot_thetah)*(-dot_thetah * transmh   / (N*hp(1) ))
@@ -168,51 +168,51 @@ cumulative_partners_next <-
 dMSEf <- -gamma1 * MSEf +
   2 * etaf * MSf * MEf -
   etaf * MSEf +
-  (-dSf) * (delta_si_f / fp(1)) * (MSSf_vacc / MSf) +
-  (-dSg) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (MSSf_vacc / MSf) +
-  (-dSh) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (MSSf_vacc / MSf)
+  (-dSf) * (delta_si_f / fp1) * (MSSf_vacc / MSf) +
+  (-dSg) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1) * (MSSf_vacc / MSf) +
+  (-dSh) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1) * (MSSf_vacc / MSf)
 dMSIf <- -rf * MSIf -
   gamma1 * MSIf +
   gamma0 * MSEf +
   2 * etaf * MSf * MIf -
   etaf * MSIf +
-  (-dSf) * (delta_si_f / fp(1)) * (-MSIf_vacc / MSf) +
-  (-dSg) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (-MSIf_vacc / MSf) +
-  (-dSh) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * (-MSIf_vacc / MSf)
+  (-dSf) * (delta_si_f / fp1) * (-MSIf_vacc / MSf) +
+  (-dSg) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1) * (-MSIf_vacc / MSf) +
+  (-dSh) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1) * (-MSIf_vacc / MSf)
 
 dMSEg <- -gamma0 * MSEg +
   2 * etag * MSg * MEg -
   etag * MSEg +
-  (-dSg) * (delta_si_g / gp(1)) * (MSSg_vacc / MSg) +
-  (-dSf) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1)) * (MSSg_vacc / MSg) +
-  (-dSh) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1)) * (MSSg_vacc / MSg)
+  (-dSg) * (delta_si_g / gp1) * (MSSg_vacc / MSg) +
+  (-dSf) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1) * (MSSg_vacc / MSg) +
+  (-dSh) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1) * (MSSg_vacc / MSg)
 dMSIg <- -rg * MSIg -
   gamma1 * MSIg +
   gamma0 * MSEg +
   2 * etag * MSg * MIg -
   etag * MSIg +
-  (-dSg) * (delta_si_g / gp(1)) * (-MSIg_vacc / MSg) +
-  (-dSf) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1)) * (-MSIg_vacc / MSg) +
-  (-dSh) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1)) * (-MSIg_vacc / MSg)
+  (-dSg) * (delta_si_g / gp1) * (-MSIg_vacc / MSg) +
+  (-dSf) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1) * (-MSIg_vacc / MSg) +
+  (-dSh) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1) * (-MSIg_vacc / MSg)
 
 dMSSf <- 1 * etaf * MSf^2 - # 2 or 1?
                           etaf * MSSf_vacc -
-                          (-dSf) * (delta_si_f / fp(1)) * MSSf_vacc / MSf - # 2 or 1 ?
-                          ((-dSg) + (-dSh)) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1)) * MSSf_vacc / MSf
+                          (-dSf) * (delta_si_f / fp1) * MSSf_vacc / MSf - # 2 or 1 ?
+                          ((-dSg) + (-dSh)) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1) * MSSf_vacc / MSf
 dMSSg <- 1 * etag * MSg^2 - # 2 or 1?
                           etag * MSSg_vacc -
-                          (-dSg) * (delta_si_g / gp(1)) * MSSg_vacc / MSg - # 2 or 1 ?
-                          ((-dSf) + (-dSh)) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1)) * MSSg_vacc / MSg
+                          (-dSg) * (delta_si_g / gp1) * MSSg_vacc / MSg - # 2 or 1 ?
+                          ((-dSf) + (-dSh)) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1) * MSSg_vacc / MSg
 
 dMEf <- -gamma0 * MEf +
-  (-dSf) * (delta_si_f / fp(1)) +
-  ((-dSg) + (-dSh)) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp(1))
+  (-dSf) * (delta_si_f / fp1) +
+  ((-dSg) + (-dSh)) * (dot_thetaf * fp(dot_thetaf) / f(dot_thetaf) / fp1)
 dMEg <- -gamma0 * MEg +
-  (-dSg) * (delta_si_g / gp(1)) +
-  ((-dSf) + (-dSh)) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp(1))
+  (-dSg) * (delta_si_g / gp1) +
+  ((-dSf) + (-dSh)) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1)
 dMEh <- -gamma0 * MEh +
-  (-dSh) * (delta_si_h / hp(1)) +
-  ((-dSf) + (-dSg)) * (dot_thetah * hp(dot_thetah) / h(dot_thetah) / hp(1))
+  (-dSh) * (delta_si_h / hp1) +
+  ((-dSf) + (-dSg)) * (dot_thetah * hp(dot_thetah) / h(dot_thetah) / hp1)
 
 dMIf <- -gamma1 * MIf + gamma0 * MEf
 dMIg <- -gamma1 * MIg + gamma0 * MEg
@@ -238,19 +238,26 @@ Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
 ## dtheta[fgh], dMS[EI][fgh], dM[EI][fgh], hopefully we do not need to
 ## do this.
 
-update(thetaf) <- max(1e-9, min(as.numeric(1), thetaf + dthetaf))
+## Constants we use in a few places; the as.numeric does a conversion
+## to the appropriate floating point type.
+fp1 <- fp(as.numeric(1))
+gp1 <- gp(as.numeric(1))
+hp1 <- hp(as.numeric(1))
+
+## Need as.numeric here to get a good cast to the correct real type
+update(thetaf) <- max(as.numeric(1e-9), min(as.numeric(1), thetaf + dthetaf))
 update(MSEf) <- max(as.numeric(0), MSEf_vacc + dMSEf)
 update(MEf) <- max(as.numeric(0), MEf + dMEf)
 update(MSSf) <- max(as.numeric(0), MSSf_vacc + dMSSf)
 update(MSIf) <- max(as.numeric(0), MSIf_vacc + dMSIf)
 update(MIf) <- max(as.numeric(0), MIf + dMIf)
-update(thetag) <- max(1e-9, min(as.numeric(1), thetag + dthetag))
+update(thetag) <- max(as.numeric(1e-9), min(as.numeric(1), thetag + dthetag))
 update(MSEg) <- max(as.numeric(0), MSEg_vacc + dMSEg)
 update(MEg) <- max(as.numeric(0), MEg + dMEg)
 update(MSSg) <- max(as.numeric(0), MSSg_vacc + dMSSg)
 update(MSIg) <- max(as.numeric(0), MSIg_vacc + dMSIg)
 update(MIg) <- max(as.numeric(0), MIg + dMIg)
-update(thetah) <- max(1e-9, min(as.numeric(1), thetah + dthetah))
+update(thetah) <- max(as.numeric(1e-9), min(as.numeric(1), thetah + dthetah))
 update(MEh) <- max(as.numeric(0), MEh + dMEh)
 update(MIh) <- max(as.numeric(0), MIh + dMIh)
 update(E) <- E_next

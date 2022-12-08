@@ -77,7 +77,11 @@ model_index <- function(info) {
   list(run = c(newI = info$index$newI,
                newIseed = info$index$newIseed,
                time = info$index$time),
-       state = integer(0))
+       state = c(cumulative_partners = info$index$cumulative_partners,
+                 seedrate = info$index$seedrate,
+                 I = info$index$I,
+                 newI = info$index$newI,
+                 newIseed = info$index$newIseed))
 }
 
 
@@ -94,10 +98,14 @@ model_index <- function(info) {
 ##'   the compiled compare function rather than [model_compare]. This
 ##'   will likely be faster if several threads are used.
 ##'
+##' @param generator Alternative generator to use, you'll need this if
+##'   using a GPU version.
+##'
 ##' @export
-model_filter <- function(data, ..., use_compiled_compare = FALSE) {
+model_filter <- function(data, ..., generator = NULL,
+                         use_compiled_compare = FALSE) {
   compare <- if (use_compiled_compare) NULL else model_compare
-  mcstate::particle_filter$new(data, model, ...,
+  mcstate::particle_filter$new(data, model = generator %||% model, ...,
                                compare = compare,
                                index = model_index)
 }

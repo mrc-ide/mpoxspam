@@ -23,5 +23,5 @@ test_that("can run filter with compiled compare", {
   ## Smoke test, will need updating on changes to basically anything,
   ## but guard against unexpected changes; wildly different to above,
   ## but that's expected with a small number of particles.
-  expect_equal(ll, -4596.91818943682)
+  expect_equal(ll, -356.901838611892)
 })

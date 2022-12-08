@@ -3,7 +3,7 @@ test_that("can run the gpu model on the cpu", {
   skip_if_not_installed("lostturnip")
 
   gen <- compile_gpu(gpu = FALSE, gpu_generate = TRUE, verbose = FALSE)
-  expect_equal(gen$public_methods$name(), "m4_2")
+  expect_equal(gen$public_methods$name(), "model")
 
   pars <- reference_pars()
 

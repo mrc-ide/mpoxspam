@@ -89,6 +89,8 @@ __host__ __device__ T odin_max(T x, T y) {
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 #include <dust/random/math.hpp>
+#include <dust/random/density.hpp>
+#include <dust/random/random.hpp>
 
 template <typename real_type>
 constexpr real_type inf = std::numeric_limits<real_type>::infinity();
@@ -227,6 +229,35 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
                   };
   return dust::math::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }
+
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type ll_nbinom(real_type data, real_type model, real_type kappa,
+                    real_type exp_noise, rng_state_type& rng_state) {
+  if (std::isnan(data)) {
+    return 0;
+  }
+  real_type mu = model +
+    dust::random::exponential<real_type>(rng_state, exp_noise);
+  return dust::density::negative_binomial_mu(data, kappa, mu, true);
+}
+
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type ll_betabinom(real_type data_a, real_type data_b,
+                       real_type model_a, real_type model_b,
+                       real_type rho, real_type exp_noise,
+                       rng_state_type& rng_state) {
+  if (std::isnan(data_a) || std::isnan(data_b)) {
+    return 0;
+  }
+  const real_type noise_a = dust::random::exponential<real_type>(rng_state, exp_noise);
+  const real_type noise_b = dust::random::exponential<real_type>(rng_state, exp_noise);
+  real_type prob = (model_a + noise_a) /
+    (model_a + noise_a + model_b + noise_b);
+  return dust::density::beta_binomial(data_a, data_b, prob, rho, true);
+}
+
 // [[odin.dust::compare_data(Ytravel = real_type)]]
 // [[odin.dust::compare_data(Yendog = real_type)]]
 // [[odin.dust::compare_data(Yunk = real_type)]]
@@ -246,18 +277,15 @@ compare(const typename T::real_type * state,
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    const real_type delta = dust::math::max(static_cast<real_type>(0.01),
-                                dust::math::min(shared->delta1, shared->delta0 + shared->delta_slope * state[30]));
-
-    const real_type t1 = model_newI < Y ? -inf<real_type> : dust::density::binomial(Y, dust::math::ceil(model_newI), delta, true);
-
-    real_type t2 = 0;
-    if (Yknown > 0) {
-      const real_type model_newItotal = model_newIseed + model_newI;
-      t2 = model_newItotal == 0 ? -inf<real_type> : dust::density::binomial(dust::math::ceil(data.Ytravel), dust::math::ceil(Yknown), model_newIseed / model_newItotal, true);
-    }
-    ret = t1 + t2;
+    real_type ll_cases = ll_nbinom(Y, model_newI, shared->kappa_cases,
+                                   shared->exp_noise, rng_state);
+    real_type ll_travel = ll_betabinom(data.Ytravel, data.Yendog,
+                                       model_newIseed, model_newI,
+                                       shared->rho_travel, shared->exp_noise,
+                                       rng_state);
+    ret = ll_cases + ll_travel;
   }
+
   return ret;
 }
 // [[dust::class(model)]]
@@ -271,11 +299,15 @@ compare(const typename T::real_type * state,
 // [[dust::param(delta_slope, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(etaf, has_default = TRUE, default_value = 0.005, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(etag, has_default = TRUE, default_value = 0.01, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(exp_noise, has_default = TRUE, default_value = 1000000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(gamma0, has_default = TRUE, default_value = 0.125, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(gamma1, has_default = TRUE, default_value = 0.25, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(i0, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(kappa_cases, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(rho_travel, has_default = TRUE, default_value = 0.5, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(seedrate0, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(seedrate_sd, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(use_new_compare, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_duration, has_default = TRUE, default_value = 55L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_freq, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_start_day, has_default = TRUE, default_value = 91L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -302,6 +334,7 @@ public:
     real_type delta_slope;
     real_type etaf;
     real_type etag;
+    real_type exp_noise;
     real_type fp1;
     real_type gamma0;
     real_type gamma1;
@@ -338,8 +371,11 @@ public:
     real_type initial_thetaf;
     real_type initial_thetag;
     real_type initial_thetah;
+    real_type kappa_cases;
+    real_type rho_travel;
     real_type seedrate0;
     real_type seedrate_sd;
+    real_type use_new_compare;
     real_type vacc_amt;
     real_type vacc_duration;
     real_type vacc_fin_day;
@@ -793,11 +829,15 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->delta_slope = 0;
   shared->etaf = static_cast<real_type>(0.0050000000000000001);
   shared->etag = static_cast<real_type>(0.01);
+  shared->exp_noise = 1000000;
   shared->gamma0 = static_cast<real_type>(0.125);
   shared->gamma1 = static_cast<real_type>(0.25);
   shared->i0 = 0;
+  shared->kappa_cases = 1;
+  shared->rho_travel = static_cast<real_type>(0.5);
   shared->seedrate0 = static_cast<real_type>(0.75);
   shared->seedrate_sd = static_cast<real_type>(0.75);
+  shared->use_new_compare = 0;
   shared->vacc_duration = 55;
   shared->vacc_freq = 1;
   shared->vacc_start_day = 91;
@@ -813,11 +853,15 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->delta_slope = user_get_scalar<real_type>(user, "delta_slope", shared->delta_slope, NA_REAL, NA_REAL);
   shared->etaf = user_get_scalar<real_type>(user, "etaf", shared->etaf, NA_REAL, NA_REAL);
   shared->etag = user_get_scalar<real_type>(user, "etag", shared->etag, NA_REAL, NA_REAL);
+  shared->exp_noise = user_get_scalar<real_type>(user, "exp_noise", shared->exp_noise, NA_REAL, NA_REAL);
   shared->gamma0 = user_get_scalar<real_type>(user, "gamma0", shared->gamma0, NA_REAL, NA_REAL);
   shared->gamma1 = user_get_scalar<real_type>(user, "gamma1", shared->gamma1, NA_REAL, NA_REAL);
   shared->i0 = user_get_scalar<real_type>(user, "i0", shared->i0, NA_REAL, NA_REAL);
+  shared->kappa_cases = user_get_scalar<real_type>(user, "kappa_cases", shared->kappa_cases, NA_REAL, NA_REAL);
+  shared->rho_travel = user_get_scalar<real_type>(user, "rho_travel", shared->rho_travel, NA_REAL, NA_REAL);
   shared->seedrate0 = user_get_scalar<real_type>(user, "seedrate0", shared->seedrate0, NA_REAL, NA_REAL);
   shared->seedrate_sd = user_get_scalar<real_type>(user, "seedrate_sd", shared->seedrate_sd, NA_REAL, NA_REAL);
+  shared->use_new_compare = user_get_scalar<real_type>(user, "use_new_compare", shared->use_new_compare, NA_REAL, NA_REAL);
   shared->vacc_duration = user_get_scalar<real_type>(user, "vacc_duration", shared->vacc_duration, NA_REAL, NA_REAL);
   shared->vacc_freq = user_get_scalar<real_type>(user, "vacc_freq", shared->vacc_freq, NA_REAL, NA_REAL);
   shared->vacc_start_day = user_get_scalar<real_type>(user, "vacc_start_day", shared->vacc_start_day, NA_REAL, NA_REAL);

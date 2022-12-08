@@ -56,6 +56,11 @@ vacc_targetted <- user(.8) # prop vacc targetted vs random
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
 
+exp_noise <- user(1e6) # ignore.unused
+kappa_cases <- user(1) # ignore.unused
+rho_travel <- user(0.5) # ignore.unused
+use_new_compare <- user(0) # ignore.unused
+
 ## These two were parameters but with derived defaults; could make
 ## these user again and move that logic into R
 vacc_amt <- 0.65 * 50e3 / vacc_duration # assuming about 50k doses by end of august 65% one dose vacc eff

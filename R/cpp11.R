@@ -87,3 +87,11 @@ test_h <- function(x) {
 test_update_theta_vacc4_2 <- function(theta_vacc, amt_targetted) {
   .Call(`_mpoxspam_test_update_theta_vacc4_2`, theta_vacc, amt_targetted)
 }
+
+test_ll_nbinom <- function(data, model, kappa, exp_noise, rng_ptr) {
+  .Call(`_mpoxspam_test_ll_nbinom`, data, model, kappa, exp_noise, rng_ptr)
+}
+
+test_ll_betabinom <- function(data_a, data_b, model_a, model_b, rho, exp_noise, rng_ptr) {
+  .Call(`_mpoxspam_test_ll_betabinom`, data_a, data_b, model_a, model_b, rho, exp_noise, rng_ptr)
+}

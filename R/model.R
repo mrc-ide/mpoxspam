@@ -44,7 +44,7 @@ model_compare <- function(state, observed, pars) {
     return(rep_len(0, n_particles))
   }
 
-  if (pars$use_new_compare) {
+  if (pars$use_new_compare == 1) {
     ll_cases <- ll_nbinom(Y, newI, kappa = pars$kappa_cases, pars$exp_noise)
     ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
                               pars$rho_travel, pars$exp_noise)

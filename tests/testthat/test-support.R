@@ -40,3 +40,37 @@ test_that("can compute theta_vacc", {
   expect_equal(res2[[1]], res2[[2]], tolerance = 1e-4)
   expect_equal(test_update_theta_vacc4_2(0.96950, 0.00063), res2[[2]], tolerance = 1e-5)
 })
+
+
+test_that("ll_nbinom behaves in corner cases", {
+  expect_equal(ll_nbinom(0, 0, 0.5, Inf), 0)
+  expect_equal(ll_nbinom(0, 0, 0, Inf), 0)
+  expect_equal(ll_nbinom(0, 0, 1, Inf), 0)
+  expect_true(is.finite(ll_nbinom(0, 0, 0.5, 1e6)))
+  expect_true(is.finite(ll_nbinom(0, 0, 0, 1e6)))
+  expect_true(is.finite(ll_nbinom(0, 0, 1, 1e6)))
+})
+
+
+test_that("ll_betabinom behaves in corner cases", {
+  rho <- 0.5
+  big <- 1e100
+  expect_equal(ll_betabinom(0, 0, 0, 0, rho, Inf), NaN) # 0 / 0 = undefined
+  expect_equal(ll_betabinom(0, 0, 0, 0, rho, big), 0) # eps / 2eps ~= 0
+  expect_equal(ll_betabinom(0, 0, 1, 1, rho, Inf), 0)
+
+  ## These could probably be special cases, they fail because of Inf -
+  ## Inf in the beta fraction
+  expect_equal(ll_betabinom(0, 0, 1, 0, rho, Inf), NaN)
+  expect_equal(ll_betabinom(0, 0, 0, 1, rho, Inf), NaN)
+  expect_equal(ll_betabinom(0, 0, 1, 1, rho, Inf), 0)
+  expect_equal(ll_betabinom(0, 0, 1, 0, rho, big), 0)
+  expect_equal(ll_betabinom(0, 0, 0, 1, rho, big), 0)
+  expect_equal(ll_betabinom(0, 0, 1, 1, rho, big), 0)
+
+  set.seed(1)
+  ll1 <- replicate(1000, ll_betabinom(1, 2, 1, 2, rho, 1e4))
+  ll2 <- replicate(1000, ll_betabinom(1, 2, 1, 2, rho, 1e8))
+  expect_lt(var(ll2), var(ll1))
+  expect_equal(mean(ll2), mean(ll1), tolerance = 1e-4)
+})

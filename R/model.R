@@ -44,21 +44,28 @@ model_compare <- function(state, observed, pars) {
     return(rep_len(0, n_particles))
   }
 
-  t1 <- rep_len(-Inf, n_particles)
-  i <- newI >= Y
-  t1[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
+  if (pars$use_new_compare) {
+    ll_cases <- ll_nbinom(Y, newI, kappa = pars$kappa_cases, pars$exp_noise)
+    ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
+                              pars$rho_travel, pars$exp_noise)
 
-  if (Ytravel + Yendog > 0) {
-    i <- newIseed + newI > 0
-    t2 <- rep_len(-Inf, n_particles)
-    t2[i] <- dbinom(ceiling(Ytravel),
-                    size = ceiling(Ytravel + Yendog),
-                    prob = newIseed[i] / (newIseed[i] + newI[i]), log = TRUE)
   } else {
-    t2 <- 0
-  }
+    ll_cases <- rep_len(-Inf, n_particles)
+    i <- newI >= Y
+    ll_cases[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
 
-  t1 + t2
+    if (Ytravel + Yendog > 0) {
+      i <- newIseed + newI > 0
+      ll_travel <- rep_len(-Inf, n_particles)
+      ll_travel[i] <- dbinom(ceiling(Ytravel),
+                             size = ceiling(Ytravel + Yendog),
+                             prob = newIseed[i] / (newIseed[i] + newI[i]),
+                             log = TRUE)
+    } else {
+      ll_travel <- 0
+    }
+  }
+  ll_cases + ll_travel
 }
 
 ##' Index of "interesting" elements for the model. This function

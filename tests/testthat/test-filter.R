@@ -25,3 +25,14 @@ test_that("can run filter with compiled compare", {
   ## but that's expected with a small number of particles.
   expect_equal(ll, -356.901838611892)
 })
+
+
+test_that("can run filter with negative/beta binomial likelihood", {
+  pars <- reference_pars()
+  pars$use_new_compare <- 1
+  dat <- filter_data()
+  set.seed(1)
+  filter <- model_filter(dat, n_particles = 100, n_threads = 1, seed = 1L)
+  ll <- filter$run(pars)
+  expect_equal(ll, -267.783889194091)
+})

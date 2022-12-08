@@ -18,7 +18,7 @@ mcstate defaults."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aja
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mpoxspam</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
       </span>
     </div>
 
@@ -52,7 +52,7 @@ mcstate defaults.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">model_filter</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span>, use_compiled_compare <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">model_filter</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span>, generator <span class="op">=</span> <span class="cn">NULL</span>, use_compiled_compare <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -63,6 +63,11 @@ mcstate defaults.</p>
 
 <dt>...</dt>
 <dd><p>Additional arguments to <a href="https://rdrr.io/pkg/mcstate/man/particle_filter.html" class="external-link">mcstate::particle_filter</a>'s constructor</p></dd>
+
+
+<dt>generator</dt>
+<dd><p>Alternative generator to use, you'll need this if
+using a GPU version.</p></dd>
 
 
 <dt>use_compiled_compare</dt>

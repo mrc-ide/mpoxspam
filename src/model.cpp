@@ -255,9 +255,8 @@ real_type ll_betabinom(real_type data_a, real_type data_b,
   const real_type noise_b = dust::random::exponential<real_type>(rng_state, exp_noise);
   real_type prob = (model_a + noise_a) /
     (model_a + noise_a + model_b + noise_b);
-  return dust::density::beta_binomial(data_a, data_b, prob, rho, true);
+  return dust::density::beta_binomial(data_a, data_a + data_b, prob, rho, true);
 }
-
 // [[odin.dust::compare_data(Ytravel = real_type)]]
 // [[odin.dust::compare_data(Yendog = real_type)]]
 // [[odin.dust::compare_data(Yunk = real_type)]]

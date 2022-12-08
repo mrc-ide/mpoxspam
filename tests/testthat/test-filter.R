@@ -17,13 +17,13 @@ test_that("can run filter with compiled compare", {
   pars <- reference_pars()
   dat <- filter_data()
   set.seed(1)
-  filter <- model_filter(dat, n_particles = 4096, n_threads = 4, seed = 1L,
+  filter <- model_filter(dat, n_particles = 100, n_threads = 4, seed = 1L,
                          use_compiled_compare = TRUE)
   ll <- filter$run(pars)
   ## Smoke test, will need updating on changes to basically anything,
   ## but guard against unexpected changes; wildly different to above,
   ## but that's expected with a small number of particles.
-  expect_equal(ll, -356.901838611892)
+  expect_equal(ll, -263.083535289101)
 })
 
 

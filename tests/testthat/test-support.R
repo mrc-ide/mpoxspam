@@ -109,4 +109,7 @@ test_that("compiled ll_betabinom agrees", {
   ll2 <- replicate(1000, test_ll_betabinom(1, 2, 1, 2, rho, 1e8, rng))
   expect_lt(var(ll2), var(ll1))
   expect_equal(mean(ll2), mean(ll1), tolerance = 1e-4)
+
+  expect_equal(ll_betabinom(2, 4, 89, 129, 0.5, Inf),
+               test_ll_betabinom(2, 4, 89, 129, 0.5, Inf, rng))
 })

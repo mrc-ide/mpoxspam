@@ -2,6 +2,8 @@
 // [[odin.dust::linking_to(lostturnip)]]
 #include <lostturnip.hpp>
 #include <dust/random/math.hpp>
+#include <dust/random/density.hpp>
+#include <dust/random/random.hpp>
 
 template <typename real_type>
 constexpr real_type inf = std::numeric_limits<real_type>::infinity();
@@ -139,4 +141,32 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
                     return f(exp_x) * g(exp_x) * dust::math::pow(1 - x / hrate<real_type>, -hshape<real_type>) - p1;
                   };
   return dust::math::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
+}
+
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type ll_nbinom(real_type data, real_type model, real_type kappa,
+                    real_type exp_noise, rng_state_type& rng_state) {
+  if (std::isnan(data)) {
+    return 0;
+  }
+  real_type mu = model +
+    dust::random::exponential<real_type>(rng_state, exp_noise);
+  return dust::density::negative_binomial_mu(data, kappa, mu, true);
+}
+
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type ll_betabinom(real_type data_a, real_type data_b,
+                       real_type model_a, real_type model_b,
+                       real_type rho, real_type exp_noise,
+                       rng_state_type& rng_state) {
+  if (std::isnan(data_a) || std::isnan(data_b)) {
+    return 0;
+  }
+  const real_type noise_a = dust::random::exponential<real_type>(rng_state, exp_noise);
+  const real_type noise_b = dust::random::exponential<real_type>(rng_state, exp_noise);
+  real_type prob_a = (model_a + noise_a) /
+    (model_a + noise_a + model_b + noise_b);
+  return dust::density::beta_binomial(data_a, data_a + data_b, prob_a, rho, true);
 }

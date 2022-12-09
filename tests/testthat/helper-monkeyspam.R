@@ -105,7 +105,12 @@ reference_pars <- function() {
        vacc_start_day = 91,
        vacc_fin_day = 146,
        vacc_targetted = 0.8,
-       cumulative_partners_days = 90)
+       cumulative_partners_days = 90,
+       ## New things added by us:
+       exp_noise = 1e6,
+       kappa_cases = 1,
+       rho_travel = 0.5,
+       use_new_compare = 0)
 }
 
 

@@ -17,17 +17,14 @@ compare(const typename T::real_type * state,
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    const real_type delta = dust::math::max(static_cast<real_type>(0.01),
-                                dust::math::min(odin(delta1), odin(delta0) + odin(delta_slope) * odin(time)));
-
-    const real_type t1 = model_newI < Y ? -inf<real_type> : dust::density::binomial(Y, dust::math::ceil(model_newI), delta, true);
-
-    real_type t2 = 0;
-    if (Yknown > 0) {
-      const real_type model_newItotal = model_newIseed + model_newI;
-      t2 = model_newItotal == 0 ? -inf<real_type> : dust::density::binomial(dust::math::ceil(data.Ytravel), dust::math::ceil(Yknown), model_newIseed / model_newItotal, true);
-    }
-    ret = t1 + t2;
+    real_type ll_cases = ll_nbinom(Y, model_newI, odin(kappa_cases),
+                                   odin(exp_noise), rng_state);
+    real_type ll_travel = ll_betabinom(data.Ytravel, data.Yendog,
+                                       model_newIseed, model_newI,
+                                       odin(rho_travel), odin(exp_noise),
+                                       rng_state);
+    ret = ll_cases + ll_travel;
   }
+
   return ret;
 }

@@ -49,6 +49,8 @@ test_that("ll_nbinom behaves in corner cases", {
   expect_true(is.finite(ll_nbinom(0, 0, 0.5, 1e6)))
   expect_true(is.finite(ll_nbinom(0, 0, 0, 1e6)))
   expect_true(is.finite(ll_nbinom(0, 0, 1, 1e6)))
+
+  expect_equal(ll_nbinom(NA, 0, 0.5, Inf), 0)
 })
 
 
@@ -84,6 +86,8 @@ test_that("ll_nbinom behaves in corner cases", {
   expect_true(is.finite(test_ll_nbinom(0, 0, 0.5, 1e6, rng)))
   expect_true(is.finite(test_ll_nbinom(0, 0, 0, 1e6, rng)))
   expect_true(is.finite(test_ll_nbinom(0, 0, 1, 1e6, rng)))
+
+  expect_equal(test_ll_nbinom(NA, 0, 0.5, Inf), 0)
 })
 
 

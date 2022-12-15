@@ -8,8 +8,8 @@ dust_model_gpu_info <- function() {
   .Call(`_mpoxspam_dust_model_gpu_info`)
 }
 
-dust_cpu_model_alloc <- function(r_pars, pars_multi, time, r_n_particles, n_threads, r_seed, deterministic, gpu_config) {
-  .Call(`_mpoxspam_dust_cpu_model_alloc`, r_pars, pars_multi, time, r_n_particles, n_threads, r_seed, deterministic, gpu_config)
+dust_cpu_model_alloc <- function(r_pars, pars_multi, time, r_n_particles, n_threads, r_seed, deterministic, gpu_config, ode_control) {
+  .Call(`_mpoxspam_dust_cpu_model_alloc`, r_pars, pars_multi, time, r_n_particles, n_threads, r_seed, deterministic, gpu_config, ode_control)
 }
 
 dust_cpu_model_run <- function(ptr, time_end) {
@@ -70,6 +70,14 @@ dust_cpu_model_set_n_threads <- function(ptr, n_threads) {
 
 dust_cpu_model_n_state <- function(ptr) {
   .Call(`_mpoxspam_dust_cpu_model_n_state`, ptr)
+}
+
+dust_cpu_model_set_stochastic_schedule <- function(ptr, time) {
+  invisible(.Call(`_mpoxspam_dust_cpu_model_set_stochastic_schedule`, ptr, time))
+}
+
+dust_cpu_model_ode_statistics <- function(ptr) {
+  invisible(.Call(`_mpoxspam_dust_cpu_model_ode_statistics`, ptr))
 }
 
 test_f <- function(x) {

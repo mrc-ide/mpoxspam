@@ -20,10 +20,10 @@ extern "C" SEXP _mpoxspam_dust_model_gpu_info() {
   END_CPP11
 }
 // model.cpp
-SEXP dust_cpu_model_alloc(cpp11::list r_pars, bool pars_multi, size_t time, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _mpoxspam_dust_cpu_model_alloc(SEXP r_pars, SEXP pars_multi, SEXP time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_model_alloc(cpp11::list r_pars, bool pars_multi, size_t time, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _mpoxspam_dust_cpu_model_alloc(SEXP r_pars, SEXP pars_multi, SEXP time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_model_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // model.cpp
@@ -133,6 +133,22 @@ extern "C" SEXP _mpoxspam_dust_cpu_model_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_model_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
+// model.cpp
+void dust_cpu_model_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _mpoxspam_dust_cpu_model_set_stochastic_schedule(SEXP ptr, SEXP time) {
+  BEGIN_CPP11
+    dust_cpu_model_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// model.cpp
+void dust_cpu_model_ode_statistics(SEXP ptr);
+extern "C" SEXP _mpoxspam_dust_cpu_model_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    dust_cpu_model_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr));
+    return R_NilValue;
+  END_CPP11
+}
 // test_support.cpp
 cpp11::sexp test_f(double x);
 extern "C" SEXP _mpoxspam_test_f(SEXP x) {
@@ -178,30 +194,32 @@ extern "C" SEXP _mpoxspam_test_ll_betabinom(SEXP data_a, SEXP data_b, SEXP model
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_mpoxspam_dust_cpu_model_alloc",         (DL_FUNC) &_mpoxspam_dust_cpu_model_alloc,         8},
-    {"_mpoxspam_dust_cpu_model_compare_data",  (DL_FUNC) &_mpoxspam_dust_cpu_model_compare_data,  1},
-    {"_mpoxspam_dust_cpu_model_filter",        (DL_FUNC) &_mpoxspam_dust_cpu_model_filter,        5},
-    {"_mpoxspam_dust_cpu_model_n_state",       (DL_FUNC) &_mpoxspam_dust_cpu_model_n_state,       1},
-    {"_mpoxspam_dust_cpu_model_reorder",       (DL_FUNC) &_mpoxspam_dust_cpu_model_reorder,       2},
-    {"_mpoxspam_dust_cpu_model_resample",      (DL_FUNC) &_mpoxspam_dust_cpu_model_resample,      2},
-    {"_mpoxspam_dust_cpu_model_rng_state",     (DL_FUNC) &_mpoxspam_dust_cpu_model_rng_state,     3},
-    {"_mpoxspam_dust_cpu_model_run",           (DL_FUNC) &_mpoxspam_dust_cpu_model_run,           2},
-    {"_mpoxspam_dust_cpu_model_set_data",      (DL_FUNC) &_mpoxspam_dust_cpu_model_set_data,      3},
-    {"_mpoxspam_dust_cpu_model_set_index",     (DL_FUNC) &_mpoxspam_dust_cpu_model_set_index,     2},
-    {"_mpoxspam_dust_cpu_model_set_n_threads", (DL_FUNC) &_mpoxspam_dust_cpu_model_set_n_threads, 2},
-    {"_mpoxspam_dust_cpu_model_set_rng_state", (DL_FUNC) &_mpoxspam_dust_cpu_model_set_rng_state, 2},
-    {"_mpoxspam_dust_cpu_model_simulate",      (DL_FUNC) &_mpoxspam_dust_cpu_model_simulate,      2},
-    {"_mpoxspam_dust_cpu_model_state",         (DL_FUNC) &_mpoxspam_dust_cpu_model_state,         2},
-    {"_mpoxspam_dust_cpu_model_time",          (DL_FUNC) &_mpoxspam_dust_cpu_model_time,          1},
-    {"_mpoxspam_dust_cpu_model_update_state",  (DL_FUNC) &_mpoxspam_dust_cpu_model_update_state,  7},
-    {"_mpoxspam_dust_model_capabilities",      (DL_FUNC) &_mpoxspam_dust_model_capabilities,      0},
-    {"_mpoxspam_dust_model_gpu_info",          (DL_FUNC) &_mpoxspam_dust_model_gpu_info,          0},
-    {"_mpoxspam_test_f",                       (DL_FUNC) &_mpoxspam_test_f,                       1},
-    {"_mpoxspam_test_g",                       (DL_FUNC) &_mpoxspam_test_g,                       1},
-    {"_mpoxspam_test_h",                       (DL_FUNC) &_mpoxspam_test_h,                       1},
-    {"_mpoxspam_test_ll_betabinom",            (DL_FUNC) &_mpoxspam_test_ll_betabinom,            7},
-    {"_mpoxspam_test_ll_nbinom",               (DL_FUNC) &_mpoxspam_test_ll_nbinom,               5},
-    {"_mpoxspam_test_update_theta_vacc4_2",    (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,    2},
+    {"_mpoxspam_dust_cpu_model_alloc",                   (DL_FUNC) &_mpoxspam_dust_cpu_model_alloc,                   9},
+    {"_mpoxspam_dust_cpu_model_compare_data",            (DL_FUNC) &_mpoxspam_dust_cpu_model_compare_data,            1},
+    {"_mpoxspam_dust_cpu_model_filter",                  (DL_FUNC) &_mpoxspam_dust_cpu_model_filter,                  5},
+    {"_mpoxspam_dust_cpu_model_n_state",                 (DL_FUNC) &_mpoxspam_dust_cpu_model_n_state,                 1},
+    {"_mpoxspam_dust_cpu_model_ode_statistics",          (DL_FUNC) &_mpoxspam_dust_cpu_model_ode_statistics,          1},
+    {"_mpoxspam_dust_cpu_model_reorder",                 (DL_FUNC) &_mpoxspam_dust_cpu_model_reorder,                 2},
+    {"_mpoxspam_dust_cpu_model_resample",                (DL_FUNC) &_mpoxspam_dust_cpu_model_resample,                2},
+    {"_mpoxspam_dust_cpu_model_rng_state",               (DL_FUNC) &_mpoxspam_dust_cpu_model_rng_state,               3},
+    {"_mpoxspam_dust_cpu_model_run",                     (DL_FUNC) &_mpoxspam_dust_cpu_model_run,                     2},
+    {"_mpoxspam_dust_cpu_model_set_data",                (DL_FUNC) &_mpoxspam_dust_cpu_model_set_data,                3},
+    {"_mpoxspam_dust_cpu_model_set_index",               (DL_FUNC) &_mpoxspam_dust_cpu_model_set_index,               2},
+    {"_mpoxspam_dust_cpu_model_set_n_threads",           (DL_FUNC) &_mpoxspam_dust_cpu_model_set_n_threads,           2},
+    {"_mpoxspam_dust_cpu_model_set_rng_state",           (DL_FUNC) &_mpoxspam_dust_cpu_model_set_rng_state,           2},
+    {"_mpoxspam_dust_cpu_model_set_stochastic_schedule", (DL_FUNC) &_mpoxspam_dust_cpu_model_set_stochastic_schedule, 2},
+    {"_mpoxspam_dust_cpu_model_simulate",                (DL_FUNC) &_mpoxspam_dust_cpu_model_simulate,                2},
+    {"_mpoxspam_dust_cpu_model_state",                   (DL_FUNC) &_mpoxspam_dust_cpu_model_state,                   2},
+    {"_mpoxspam_dust_cpu_model_time",                    (DL_FUNC) &_mpoxspam_dust_cpu_model_time,                    1},
+    {"_mpoxspam_dust_cpu_model_update_state",            (DL_FUNC) &_mpoxspam_dust_cpu_model_update_state,            7},
+    {"_mpoxspam_dust_model_capabilities",                (DL_FUNC) &_mpoxspam_dust_model_capabilities,                0},
+    {"_mpoxspam_dust_model_gpu_info",                    (DL_FUNC) &_mpoxspam_dust_model_gpu_info,                    0},
+    {"_mpoxspam_test_f",                                 (DL_FUNC) &_mpoxspam_test_f,                                 1},
+    {"_mpoxspam_test_g",                                 (DL_FUNC) &_mpoxspam_test_g,                                 1},
+    {"_mpoxspam_test_h",                                 (DL_FUNC) &_mpoxspam_test_h,                                 1},
+    {"_mpoxspam_test_ll_betabinom",                      (DL_FUNC) &_mpoxspam_test_ll_betabinom,                      7},
+    {"_mpoxspam_test_ll_nbinom",                         (DL_FUNC) &_mpoxspam_test_ll_nbinom,                         5},
+    {"_mpoxspam_test_update_theta_vacc4_2",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,              2},
     {NULL, NULL, 0}
 };
 }

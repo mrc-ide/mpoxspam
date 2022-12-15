@@ -53,6 +53,8 @@ seedrate_sd <- user(0.75) #2.99 #sd of random walk of daily diff in seedrate
 vacc_freq <- user(1)
 vacc_start_day <- user(91)
 vacc_targetted <- user(.8) # prop vacc targetted vs random
+vacc_efficacy <- user(0.78) # Bertran et el, one dose
+vacc_doses_per_day <- user(50e3) # Assume 50k doses per day in UK
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
 
@@ -61,9 +63,7 @@ kappa_cases <- user(1) # ignore.unused
 rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
-## These two were parameters but with derived defaults; could make
-## these user again and move that logic into R
-vacc_amt <- 0.65 * 50e3 / vacc_duration # assuming about 50k doses by end of august 65% one dose vacc eff
+vacc_amt <- vacc_efficacy * vacc_doses_per_day / vacc_duration
 vacc_fin_day <- vacc_start_day + vacc_duration
 
 add_vaccine <-

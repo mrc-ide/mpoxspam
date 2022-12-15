@@ -170,3 +170,12 @@ real_type ll_betabinom(real_type data_a, real_type data_b,
     (model_a + noise_a + model_b + noise_b);
   return dust::density::beta_binomial(data_a, data_a + data_b, prob_a, rho, true);
 }
+
+template <typename real_type>
+__host__ __device__
+real_type calc_delta(real_type delta0, real_type delta1, real_type delta_slope,
+                    real_type time) {
+  real_type delta_curr = delta0 + delta_slope * time;
+  return dust::math::max(static_cast<real_type>(0.01),
+                         dust::math::min(delta1, delta_curr));
+}

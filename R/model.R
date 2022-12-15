@@ -46,7 +46,7 @@ model_compare <- function(state, observed, pars) {
 
   if (pars$use_new_compare == 1) {
     cases <- ceiling(newI * delta)
-    ll_cases <- ll_nbinom(Y, cases, kappa = pars$kappa_cases, pars$exp_noise)
+    ll_cases <- ll_nbinom(Y, cases, pars$kappa_cases, pars$exp_noise)
     ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
                               pars$rho_travel, pars$exp_noise)
   } else {

@@ -263,6 +263,15 @@ real_type ll_betabinom(real_type data_a, real_type data_b,
     (model_a + noise_a + model_b + noise_b);
   return dust::density::beta_binomial(data_a, data_a + data_b, prob_a, rho, true);
 }
+
+template <typename real_type>
+__host__ __device__
+real_type calc_delta(real_type delta0, real_type delta1, real_type delta_slope,
+                    real_type time) {
+  real_type delta_curr = delta0 + delta_slope * time;
+  return dust::math::max(static_cast<real_type>(0.01),
+                         dust::math::min(delta1, delta_curr));
+}
 // [[odin.dust::compare_data(Ytravel = real_type)]]
 // [[odin.dust::compare_data(Yendog = real_type)]]
 // [[odin.dust::compare_data(Yunk = real_type)]]
@@ -276,13 +285,16 @@ compare(const typename T::real_type * state,
         typename T::rng_state_type& rng_state) {
   typedef typename T::real_type real_type;
   const real_type model_newI = state[17];
+  const real_type delta = calc_delta(shared->delta0, shared->delta1,
+                                     shared->delta_slope, state[30]);
+  const real_type cases = dust::math::ceil(model_newI  * delta);
   const real_type model_newIseed = state[19];
   const real_type Yknown = data.Ytravel + data.Yendog;
   const real_type Y = dust::math::ceil(Yknown + data.Yunk);
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
-    real_type ll_cases = ll_nbinom(Y, model_newI, shared->kappa_cases,
+    real_type ll_cases = ll_nbinom(Y, cases, shared->kappa_cases,
                                    shared->exp_noise, rng_state);
     real_type ll_travel = ll_betabinom(data.Ytravel, data.Yendog,
                                        model_newIseed, model_newI,

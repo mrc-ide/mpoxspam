@@ -105,6 +105,8 @@ reference_pars <- function() {
        vacc_start_day = 91,
        vacc_fin_day = 146,
        vacc_targetted = 0.8,
+       vacc_efficacy = 0.65,
+       vacc_doses_per_day = 50e3,
        cumulative_partners_days = 90,
        ## New things added by us:
        exp_noise = 1e6,

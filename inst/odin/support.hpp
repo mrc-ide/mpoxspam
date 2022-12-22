@@ -74,40 +74,27 @@ real_type gppp(real_type x) {
   return (2 * 3 * 475) / static_cast<real_type>(4904);
 }
 
-// There's a bit of a fight here with hrate and hshape because we need
-// these to be in the correct precision given the their functions.
-template <typename real_type>
-constexpr real_type hshape = 0.26;
-template <typename real_type>
-constexpr real_type hrate = 1.85 * 7;
-
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
-real_type h(real_type x) {
+real_type h(real_type x, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type hs = hshape<real_type>;
-  const real_type hr = hrate<real_type>;
   return dust::math::pow(1 - dust::math::log(x) / hr, -hs);
 }
 
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
-real_type hp(real_type x) {
+real_type hp(real_type x, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type hs = hshape<real_type>;
-  const real_type hr = hrate<real_type>;
   return hs * dust::math::pow(1 - dust::math::log(x) / hr, -hs - 1) / (hr * x);
 }
 
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
-real_type hpp(real_type x) {
+real_type hpp(real_type x, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type hs = hshape<real_type>;
-  const real_type hr = hrate<real_type>;
   return hs * dust::math::pow((hr - dust::math::log(x)) / hr, -hs) *
     (-hr + hs + dust::math::log(x) + 1) / (x * x * dust::math::pow(hr - dust::math::log(x), 2));
 }
@@ -115,10 +102,8 @@ real_type hpp(real_type x) {
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
-real_type hppp(real_type x) {
+real_type hppp(real_type x, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type hs = hshape<real_type>;
-  const real_type hr = hrate<real_type>;
   return hs * dust::math::pow((hr - dust::math::log(x)) / hr, -hs) *
     (hs * hs + 3 * hs + 2 * dust::math::pow(hr - dust::math::log(x), 2) - 3 * (hr - dust::math::log(x)) * (hs + 1) + 2) / (x * x * x * dust::math::pow(hr - dust::math::log(x), 3));
 }
@@ -126,19 +111,20 @@ real_type hppp(real_type x) {
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
-real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted) {
+real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted,
+                               real_type hshape, real_type hrate) {
   // Somewhat annoyingly, we can do this as constexpr in gcc but it's
   // not portable as sqrt() is not constexpr in any version of the
   // standard. It's possible that the compiler will work this out for
   // us?
   const real_type tol = dust::math::sqrt(eps<real_type>);
-  const real_type p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc);
+  const real_type p0 = f(theta_vacc) * g(theta_vacc) * h(theta_vacc, hshape, hrate);
   const real_type p1 = dust::math::max(static_cast<real_type>(0.01), p0 - amt_targetted);
   // There's a small optimisation that can be made here by avoiding
   // doing log(exp(x)) in h
   const auto fn = [&](real_type x) {
                     const auto exp_x = dust::math::exp(x);
-                    return f(exp_x) * g(exp_x) * dust::math::pow(1 - x / hrate<real_type>, -hshape<real_type>) - p1;
+                    return f(exp_x) * g(exp_x) * dust::math::pow(1 - x / hrate, -hshape) - p1;
                   };
   return dust::math::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }

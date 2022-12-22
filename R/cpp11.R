@@ -88,12 +88,12 @@ test_g <- function(x) {
   .Call(`_mpoxspam_test_g`, x)
 }
 
-test_h <- function(x) {
-  .Call(`_mpoxspam_test_h`, x)
+test_h <- function(x, hs, hr) {
+  .Call(`_mpoxspam_test_h`, x, hs, hr)
 }
 
-test_update_theta_vacc4_2 <- function(theta_vacc, amt_targetted) {
-  .Call(`_mpoxspam_test_update_theta_vacc4_2`, theta_vacc, amt_targetted)
+test_update_theta_vacc4_2 <- function(theta_vacc, amt_targetted, hshape, hrate) {
+  .Call(`_mpoxspam_test_update_theta_vacc4_2`, theta_vacc, amt_targetted, hshape, hrate)
 }
 
 test_ll_nbinom <- function(data, model, kappa, exp_noise, rng_ptr) {

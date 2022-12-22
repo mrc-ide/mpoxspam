@@ -42,6 +42,8 @@ gamma0 <- user(0.125)
 gamma1 <- user(0.25)
 etaf <- user(0.005) ## Anderson Epidemiology 2021
 etag <- user(0.01) #Anderson Epidemiology 2021
+hshape <- user(0.26) ## Weiss 2020
+hrate <- user(12.95) ## Weiss 2020 1.85 * 7 converted to weekly
 N <- user(750e3)
 ## N <- user(N) #
 i0 <- user(0)
@@ -75,7 +77,7 @@ amt_targetted <- vacc_targetted * vacc_amt / N
 amt_random <- (1 - vacc_targetted) * vacc_amt / N
 
 ## Erik's theta_vacc0 is our theta_vacc, his theta_vacc our theta_vacc_use
-theta_vacc_use <- if (add_vaccine) update_theta_vacc4_2(theta_vacc, amt_targetted) else theta_vacc
+theta_vacc_use <- if (add_vaccine) update_theta_vacc4_2(theta_vacc, amt_targetted, hshape, hrate) else theta_vacc
 red_f <- (theta_vacc_use * fp(theta_vacc_use)) / (theta_vacc * fp(theta_vacc))
 red_g <- (theta_vacc_use * gp(theta_vacc_use)) / (theta_vacc * gp(theta_vacc))
 
@@ -138,13 +140,17 @@ trateh <- max(as.numeric(0), beta_next * MIh * N * hp1 * S_vacc_use)
 transmh <- rpois(trateh) # note S_vacc here, because there is no MSI in MFSH model
 
 dthetah <- -dot_thetah * (transmh + transmseed) / (N * hp1) # seeding happens here
-dSh <- hp(dot_thetah) * dthetah # note prop to transm
+dSh <- hp(dot_thetah, hshape, hrate) * dthetah # note prop to transm
 # may also need this separated into seed and non-seed components:
 # dSh0 <- hp(dot_thetah)*(-dot_thetah * transmh   / (N*hp(1) ))
 # dSh_seed <- hp(dot_thetah)*(-dot_thetah * transmseed  / (N*hp(1) ))
-meanfield_delta_si_h <- (1 + dot_thetah * hpp(dot_thetah) / hp(dot_thetah)) # note + 1 for mfsh (vs the above)
+meanfield_delta_si_h <- (1 + dot_thetah * hpp(dot_thetah, hshape, hrate) /
+                           hp(dot_thetah, hshape, hrate)) # note + 1 for mfsh (vs the above)
 u1h <- meanfield_delta_si_h
-u2h <- hppp(dot_thetah) * dot_thetah^2 / hp(dot_thetah) + 2 * dot_thetah * hpp(dot_thetah) / hp(dot_thetah) + u1h
+u2h <- hppp(dot_thetah, hshape, hrate) * dot_thetah^2 /
+  hp(dot_thetah, hshape, hrate) +
+  2 * dot_thetah * hpp(dot_thetah, hshape, hrate) /
+  hp(dot_thetah, hshape, hrate) + u1h
 vh <- u2h - u1h^2
 delta_si_h <- (if (transmh == 0) 0
                else rnorm(meanfield_delta_si_h, sqrt(vh / transmh)))
@@ -165,8 +171,10 @@ cumulative_partners_next <-
     tauh * dot_thetag * gp(dot_thetag) / g(dot_thetag)
   ) +
   cumulative_partners_days * (
-    tauf * dot_thetah * hp(dot_thetah) / h(dot_thetah) +
-    taug * dot_thetah * hp(dot_thetah) / h(dot_thetah) +
+    tauf * dot_thetah * hp(dot_thetah, hshape, hrate) /
+      h(dot_thetah, hshape, hrate) +
+    taug * dot_thetah * hp(dot_thetah, hshape, hrate) /
+      h(dot_thetah, hshape, hrate) +
     tauh * meanfield_delta_si_h
   )
 
@@ -217,7 +225,8 @@ dMEg <- -gamma0 * MEg +
   ((-dSf) + (-dSh)) * (dot_thetag * gp(dot_thetag) / g(dot_thetag) / gp1)
 dMEh <- -gamma0 * MEh +
   (-dSh) * (delta_si_h / hp1) +
-  ((-dSf) + (-dSg)) * (dot_thetah * hp(dot_thetah) / h(dot_thetah) / hp1)
+  ((-dSf) + (-dSg)) * (dot_thetah * hp(dot_thetah, hshape, hrate) /
+                         h(dot_thetah, hshape, hrate) / hp1)
 
 dMIf <- -gamma1 * MIf + gamma0 * MEf
 dMIg <- -gamma1 * MIg + gamma0 * MEg
@@ -247,7 +256,7 @@ Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
 ## to the appropriate floating point type.
 fp1 <- fp(as.numeric(1))
 gp1 <- gp(as.numeric(1))
-hp1 <- hp(as.numeric(1))
+hp1 <- hp(as.numeric(1), hshape, hrate)
 
 ## Need as.numeric here to get a good cast to the correct real type
 update(thetaf) <- max(as.numeric(1e-9), min(as.numeric(1), thetaf + dthetaf))

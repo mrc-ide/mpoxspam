@@ -29,6 +29,8 @@ model <- R6::R6Class(
      exp_noise = list(has_default = TRUE, default_value = 1000000L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      gamma0 = list(has_default = TRUE, default_value = 0.125, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      gamma1 = list(has_default = TRUE, default_value = 0.25, rank = 0, min = -Inf, max = Inf, integer = FALSE),
+     hrate = list(has_default = TRUE, default_value = 12.95, rank = 0, min = -Inf, max = Inf, integer = FALSE),
+     hshape = list(has_default = TRUE, default_value = 0.26, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      i0 = list(has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      kappa_cases = list(has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      rho_travel = list(has_default = TRUE, default_value = 0.5, rank = 0, min = -Inf, max = Inf, integer = FALSE),

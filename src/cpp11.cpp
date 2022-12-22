@@ -164,17 +164,17 @@ extern "C" SEXP _mpoxspam_test_g(SEXP x) {
   END_CPP11
 }
 // test_support.cpp
-cpp11::doubles test_h(double x);
-extern "C" SEXP _mpoxspam_test_h(SEXP x) {
+cpp11::doubles test_h(double x, double hs, double hr);
+extern "C" SEXP _mpoxspam_test_h(SEXP x, SEXP hs, SEXP hr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(test_h(cpp11::as_cpp<cpp11::decay_t<double>>(x)));
+    return cpp11::as_sexp(test_h(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(hs), cpp11::as_cpp<cpp11::decay_t<double>>(hr)));
   END_CPP11
 }
 // test_support.cpp
-double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted);
-extern "C" SEXP _mpoxspam_test_update_theta_vacc4_2(SEXP theta_vacc, SEXP amt_targetted) {
+double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted, double hshape, double hrate);
+extern "C" SEXP _mpoxspam_test_update_theta_vacc4_2(SEXP theta_vacc, SEXP amt_targetted, SEXP hshape, SEXP hrate) {
   BEGIN_CPP11
-    return cpp11::as_sexp(test_update_theta_vacc4_2(cpp11::as_cpp<cpp11::decay_t<double>>(theta_vacc), cpp11::as_cpp<cpp11::decay_t<double>>(amt_targetted)));
+    return cpp11::as_sexp(test_update_theta_vacc4_2(cpp11::as_cpp<cpp11::decay_t<double>>(theta_vacc), cpp11::as_cpp<cpp11::decay_t<double>>(amt_targetted), cpp11::as_cpp<cpp11::decay_t<double>>(hshape), cpp11::as_cpp<cpp11::decay_t<double>>(hrate)));
   END_CPP11
 }
 // test_support.cpp
@@ -216,10 +216,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mpoxspam_dust_model_gpu_info",                    (DL_FUNC) &_mpoxspam_dust_model_gpu_info,                    0},
     {"_mpoxspam_test_f",                                 (DL_FUNC) &_mpoxspam_test_f,                                 1},
     {"_mpoxspam_test_g",                                 (DL_FUNC) &_mpoxspam_test_g,                                 1},
-    {"_mpoxspam_test_h",                                 (DL_FUNC) &_mpoxspam_test_h,                                 1},
+    {"_mpoxspam_test_h",                                 (DL_FUNC) &_mpoxspam_test_h,                                 3},
     {"_mpoxspam_test_ll_betabinom",                      (DL_FUNC) &_mpoxspam_test_ll_betabinom,                      7},
     {"_mpoxspam_test_ll_nbinom",                         (DL_FUNC) &_mpoxspam_test_ll_nbinom,                         5},
-    {"_mpoxspam_test_update_theta_vacc4_2",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,              2},
+    {"_mpoxspam_test_update_theta_vacc4_2",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,              4},
     {NULL, NULL, 0}
 };
 }

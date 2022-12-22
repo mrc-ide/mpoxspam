@@ -14,13 +14,13 @@ cpp11::doubles test_g(double x) {
 }
 
 [[cpp11::register]]
-cpp11::doubles test_h(double x) {
-  return cpp11::writable::doubles({h(x), hp(x), hpp(x), hppp(x)});
+cpp11::doubles test_h(double x, double hs, double hr) {
+  return cpp11::writable::doubles({h(x, hs, hr), hp(x, hs, hr), hpp(x, hs, hr), hppp(x, hs, hr)});
 }
 
 [[cpp11::register]]
-double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted) {
-  return update_theta_vacc4_2(theta_vacc, amt_targetted);
+double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted, double hshape, double hrate) {
+  return update_theta_vacc4_2(theta_vacc, amt_targetted, hshape, hrate);
 }
 
 [[cpp11::register]]

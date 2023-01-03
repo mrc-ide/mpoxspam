@@ -56,7 +56,7 @@ vacc_freq <- user(1)
 vacc_start_day <- user(91)
 vacc_targetted <- user(.8) # prop vacc targetted vs random
 vacc_efficacy <- user(0.78) # Bertran et el, one dose
-vacc_doses_per_day <- user(50e3) # Assume 50k doses per day in UK
+vacc_doses <- user(50e3) # Assume 50k doses in UK
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
 
@@ -65,7 +65,7 @@ kappa_cases <- user(1) # ignore.unused
 rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
-vacc_amt <- vacc_efficacy * vacc_doses_per_day / vacc_duration
+vacc_amt <- vacc_efficacy * vacc_doses / vacc_duration
 vacc_fin_day <- vacc_start_day + vacc_duration
 
 add_vaccine <-

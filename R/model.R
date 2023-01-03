@@ -25,6 +25,7 @@ NULL
 ##'   of particles (the number of columns in the modelled state)
 ##'
 ##' @export
+##' @importFrom stats dbinom
 model_compare <- function(state, observed, pars) {
   ## Unpack modelled:
   newI <- state["newI", ]

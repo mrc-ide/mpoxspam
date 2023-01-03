@@ -313,7 +313,7 @@ compare(const typename T::real_type * state,
 // [[dust::param(seedrate0, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(seedrate_sd, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(use_new_compare, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(vacc_doses_per_day, has_default = TRUE, default_value = 50000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(vacc_doses, has_default = TRUE, default_value = 50000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_duration, has_default = TRUE, default_value = 55L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_efficacy, has_default = TRUE, default_value = 0.78, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_freq, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -386,7 +386,7 @@ public:
     real_type seedrate_sd;
     real_type use_new_compare;
     real_type vacc_amt;
-    real_type vacc_doses_per_day;
+    real_type vacc_doses;
     real_type vacc_duration;
     real_type vacc_efficacy;
     real_type vacc_fin_day;
@@ -850,7 +850,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->seedrate0 = static_cast<real_type>(0.75);
   shared->seedrate_sd = static_cast<real_type>(0.75);
   shared->use_new_compare = 0;
-  shared->vacc_doses_per_day = 50000;
+  shared->vacc_doses = 50000;
   shared->vacc_duration = 55;
   shared->vacc_efficacy = static_cast<real_type>(0.78000000000000003);
   shared->vacc_freq = 1;
@@ -878,7 +878,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->seedrate0 = user_get_scalar<real_type>(user, "seedrate0", shared->seedrate0, NA_REAL, NA_REAL);
   shared->seedrate_sd = user_get_scalar<real_type>(user, "seedrate_sd", shared->seedrate_sd, NA_REAL, NA_REAL);
   shared->use_new_compare = user_get_scalar<real_type>(user, "use_new_compare", shared->use_new_compare, NA_REAL, NA_REAL);
-  shared->vacc_doses_per_day = user_get_scalar<real_type>(user, "vacc_doses_per_day", shared->vacc_doses_per_day, NA_REAL, NA_REAL);
+  shared->vacc_doses = user_get_scalar<real_type>(user, "vacc_doses", shared->vacc_doses, NA_REAL, NA_REAL);
   shared->vacc_duration = user_get_scalar<real_type>(user, "vacc_duration", shared->vacc_duration, NA_REAL, NA_REAL);
   shared->vacc_efficacy = user_get_scalar<real_type>(user, "vacc_efficacy", shared->vacc_efficacy, NA_REAL, NA_REAL);
   shared->vacc_freq = user_get_scalar<real_type>(user, "vacc_freq", shared->vacc_freq, NA_REAL, NA_REAL);
@@ -887,7 +887,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->hp1 = hp(static_cast<real_type>(1), shared->hshape, shared->hrate);
   shared->initial_beta = shared->beta0;
   shared->initial_seedrate = shared->seedrate0;
-  shared->vacc_amt = shared->vacc_efficacy * shared->vacc_doses_per_day / (real_type) shared->vacc_duration;
+  shared->vacc_amt = shared->vacc_efficacy * shared->vacc_doses / (real_type) shared->vacc_duration;
   shared->vacc_fin_day = shared->vacc_start_day + shared->vacc_duration;
   shared->xinit = shared->i0 / (real_type) shared->N;
   shared->amt_random = (1 - shared->vacc_targetted) * shared->vacc_amt / (real_type) shared->N;

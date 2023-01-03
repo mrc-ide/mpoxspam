@@ -37,7 +37,7 @@ model <- R6::R6Class(
      seedrate0 = list(has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      seedrate_sd = list(has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      use_new_compare = list(has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
-     vacc_doses_per_day = list(has_default = TRUE, default_value = 50000L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
+     vacc_doses = list(has_default = TRUE, default_value = 50000L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_duration = list(has_default = TRUE, default_value = 55L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_efficacy = list(has_default = TRUE, default_value = 0.78, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_freq = list(has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE),

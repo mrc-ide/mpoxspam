@@ -112,7 +112,8 @@ reference_pars <- function() {
        exp_noise = 1e6,
        kappa_cases = 1,
        rho_travel = 0.5,
-       use_new_compare = 0)
+       compare_cases = "binom",
+       compare_travel = "binom")
 }
 
 

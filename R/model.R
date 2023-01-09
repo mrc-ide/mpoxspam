@@ -27,6 +27,7 @@ NULL
 ##' @export
 ##' @importFrom stats dbinom
 model_compare <- function(state, observed, pars) {
+
   ## Unpack modelled:
   newI <- state["newI", ]
   newIseed <- state["newIseed", ]

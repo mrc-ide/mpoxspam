@@ -29,7 +29,8 @@ test_that("can run filter with compiled compare", {
 
 test_that("can run filter with negative/beta binomial likelihood", {
   pars <- reference_pars()
-  pars$use_new_compare <- 1
+  pars$compare_cases <- "negbinom"
+  pars$compare_travel <- "betabinom"
   dat <- filter_data()
   set.seed(1)
   filter <- model_filter(dat, n_particles = 100, n_threads = 1, seed = 1L)

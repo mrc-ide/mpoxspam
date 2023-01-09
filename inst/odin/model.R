@@ -13,8 +13,10 @@ initial(MIg) <- 0
 initial(thetah) <- 1 - xinit
 initial(MEh) <- xinit / 2
 initial(MIh) <- xinit / 2 #* (1+hpp(1)/hp(1)) / hp(1)
-initial(E) <- xinit * N / 2
-initial(I) <- xinit * N / 2
+initial(S) <- N - i0
+initial(E) <- i0 / 2
+initial(I) <- i0 / 2
+initial(R) <- 0
 initial(newI) <- 0
 initial(Eseed) <- 0
 initial(newIseed) <- 0
@@ -241,6 +243,8 @@ I_next <- max(as.numeric(0), I + gamma0 * E - gamma1 * I)
 ## new case detections. some subset of these will be detected each week
 newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E # will accumulate between obvs
 E_next <- max(as.numeric(0), E + newE - gamma0 * E)
+S_next <- max(as.numeric(0), S - newE)
+R_next <- max(as.numeric(0), R + gamma1 * I)
 
 # seed state variables
 # exposed, infectious, diagnosed or undiagnosed
@@ -274,8 +278,10 @@ update(MIg) <- max(as.numeric(0), MIg + dMIg)
 update(thetah) <- max(as.numeric(1e-9), min(as.numeric(1), thetah + dthetah))
 update(MEh) <- max(as.numeric(0), MEh + dMEh)
 update(MIh) <- max(as.numeric(0), MIh + dMIh)
+update(S) <- S_next
 update(E) <- E_next
 update(I) <- I_next
+update(R) <- R_next
 update(newI) <- newI_next
 update(Eseed) <- Eseed_next
 update(newIseed) <- newIseed_next

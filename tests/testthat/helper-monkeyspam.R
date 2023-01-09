@@ -101,7 +101,6 @@ reference_pars <- function() {
        seedrate0 = -0.111546627766835,
        seedrate_sd = 0.75,
        vacc_freq = 1,
-       vacc_amt = 590.909090909091,
        vacc_start_day = 91,
        vacc_fin_day = 146,
        vacc_targetted = 0.8,

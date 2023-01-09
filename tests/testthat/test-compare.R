@@ -32,7 +32,8 @@ test_that("compare is correct for missing data", {
 
 test_that("can use compiled compare", {
   pars <- reference_pars()
-  pars$use_new_compare <- 1
+  pars$compare_cases <- "negbinom"
+  pars$compare_travel <- "betabinom"
   pars$exp_noise <- Inf
   dat <- filter_data()
 

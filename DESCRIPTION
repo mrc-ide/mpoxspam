@@ -1,6 +1,6 @@
 Package: mpoxspam
 Title: Pair Approximation Transmission Model of Mpox
-Version: 0.1.8
+Version: 0.1.9
 Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
                     email = "l.whittles@imperial.ac.uk"),
              person("Rich", "FitzJohn", role = c("aut")),

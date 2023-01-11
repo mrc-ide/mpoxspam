@@ -27,6 +27,7 @@ NULL
 ##' @export
 ##' @importFrom stats dbinom
 model_compare <- function(state, observed, pars) {
+
   ## Unpack modelled:
   newI <- state["newI", ]
   newIseed <- state["newIseed", ]
@@ -45,16 +46,25 @@ model_compare <- function(state, observed, pars) {
     return(rep_len(0, n_particles))
   }
 
-  if (pars$use_new_compare == 1) {
+  if (pars$compare_cases == "negbinom") {
+    # Y ~ NegBin(model_Y * delta, kappa)
     cases <- ceiling(newI * delta)
     ll_cases <- ll_nbinom(Y, cases, pars$kappa_cases, pars$exp_noise)
-    ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
-                              pars$rho_travel, pars$exp_noise)
-  } else {
+  } else if(pars$compare_cases == "binom") {
+    # Y ~ Bin(model_Y, delta)
     ll_cases <- rep_len(-Inf, n_particles)
     i <- newI >= Y
     ll_cases[i] <- dbinom(Y, size = ceiling(newI[i]), prob = delta, log = TRUE)
+  } else {
+    stop(sprintf("unrecognised compare function %s", pars$compare_cases))
+  }
 
+  if (pars$compare_travel == "betabinom") {
+    # Ytravel ~ BetaBinom(Y, model_p, rho)
+    ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
+                              pars$rho_travel, pars$exp_noise)
+  } else if (pars$compare_travel == "binom") {
+    # Ytravel ~ Bin(Y, model_p)
     if (Ytravel + Yendog > 0) {
       i <- newIseed + newI > 0
       ll_travel <- rep_len(-Inf, n_particles)
@@ -65,7 +75,14 @@ model_compare <- function(state, observed, pars) {
     } else {
       ll_travel <- 0
     }
+  } else if (pars$compare_travel == "negbinom") {
+    # Y ~ NegBin(model_Ytravel * delta, kappa)
+    travel <- ceiling(newIseed * delta)
+    ll_travel <- ll_nbinom(Ytravel, travel, pars$kappa_travel, pars$exp_noise)
+  } else {
+    stop(sprintf("unrecognised compare function %s", pars$compare_travel))
   }
+
   ll_cases + ll_travel
 }
 

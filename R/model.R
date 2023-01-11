@@ -52,9 +52,16 @@ model_compare <- function(state, observed, pars) {
   }
 
   if (pars$compare_cases == "negbinom") {
-    # Yendog ~ NegBin(model_Yendog, kappa)
-    ll_cases <- ll_nbinom(Yendog, model_Yendog, pars$kappa_model_Y,
-                          pars$exp_noise)
+    if (pars$compare_travel == "negbinom") {
+      # if using Ytravel ~ NegBin, fit to endogenous cases not total cases
+      # Yendog ~ NegBin(model_Yendog, kappa)
+      ll_cases <- ll_nbinom(Yendog, model_Yendog, pars$kappa_cases,
+                            pars$exp_noise)
+    } else {
+      # fit to total cases
+      # Y ~ NegBin(model_Y, kappa)
+      ll_cases <- ll_nbinom(Y, model_Y, pars$kappa_cases, pars$exp_noise)
+    }
   } else if(pars$compare_cases == "binom") {
     # Y ~ Bin(model_Y, delta)
     ll_cases <- rep_len(-Inf, n_particles)
@@ -69,6 +76,7 @@ model_compare <- function(state, observed, pars) {
     ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newIendog,
                               pars$rho_travel, pars$exp_noise)
   } else if (pars$compare_travel == "binom") {
+
     # Ytravel ~ Bin(Y, model_p)
     if (Ytravel + Yendog > 0) {
       i <- newIseed + newI > 0

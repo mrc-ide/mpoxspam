@@ -29,27 +29,32 @@ NULL
 model_compare <- function(state, observed, pars) {
 
   ## Unpack modelled:
-  newI <- state["newI", ]
-  newIseed <- state["newIseed", ]
+  n_particles <- ncol(state)
   time <- state["time", 1L] # same over all particles
+  delta <- max(.01, min(pars$delta1, pars$delta0 + pars$delta_slope * time))
+
+  newI <- state["newI", ] ## total new cases (E->I)
+  newIseed <- state["newIseed", ] ## new travel-associated cases
+  newIendog <- newI - newIseed ## new locally-acquired cases
+  ## allowing for under-ascertainment
+  model_Y <- ceiling(newI * delta)
+  model_Ytravel <- ceiling(newIseed * delta)
+  model_Yendog <- model_Y - model_Ytravel
 
   ## Unpack observed data:
   Ytravel <- observed$Ytravel
   Yendog <- observed$Yendog
   Yunk <- observed$Yunk
-
-  n_particles <- ncol(state)
-
   Y <- ceiling(Ytravel + Yendog + Yunk)
-  delta <- max(.01, min(pars$delta1, pars$delta0 + pars$delta_slope * time))
+
   if (is.na(Y)) {
     return(rep_len(0, n_particles))
   }
 
   if (pars$compare_cases == "negbinom") {
-    # Y ~ NegBin(model_Y * delta, kappa)
-    cases <- ceiling(newI * delta)
-    ll_cases <- ll_nbinom(Y, cases, pars$kappa_cases, pars$exp_noise)
+    # Yendog ~ NegBin(model_Yendog, kappa)
+    ll_cases <- ll_nbinom(Yendog, model_Yendog, pars$kappa_model_Y,
+                          pars$exp_noise)
   } else if(pars$compare_cases == "binom") {
     # Y ~ Bin(model_Y, delta)
     ll_cases <- rep_len(-Inf, n_particles)
@@ -61,7 +66,7 @@ model_compare <- function(state, observed, pars) {
 
   if (pars$compare_travel == "betabinom") {
     # Ytravel ~ BetaBinom(Y, model_p, rho)
-    ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newI,
+    ll_travel <- ll_betabinom(Ytravel, Yendog, newIseed, newIendog,
                               pars$rho_travel, pars$exp_noise)
   } else if (pars$compare_travel == "binom") {
     # Ytravel ~ Bin(Y, model_p)
@@ -70,15 +75,15 @@ model_compare <- function(state, observed, pars) {
       ll_travel <- rep_len(-Inf, n_particles)
       ll_travel[i] <- dbinom(ceiling(Ytravel),
                              size = ceiling(Ytravel + Yendog),
-                             prob = newIseed[i] / (newIseed[i] + newI[i]),
+                             prob = newIseed[i] / newI[i],
                              log = TRUE)
     } else {
       ll_travel <- 0
     }
   } else if (pars$compare_travel == "negbinom") {
     # Y ~ NegBin(model_Ytravel * delta, kappa)
-    travel <- ceiling(newIseed * delta)
-    ll_travel <- ll_nbinom(Ytravel, travel, pars$kappa_travel, pars$exp_noise)
+    ll_travel <- ll_nbinom(Ytravel, model_Ytravel, pars$kappa_travel,
+                           pars$exp_noise)
   } else {
     stop(sprintf("unrecognised compare function %s", pars$compare_travel))
   }

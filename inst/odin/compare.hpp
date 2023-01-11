@@ -17,13 +17,14 @@ compare(const typename T::real_type * state,
   const real_type model_newIseed = odin(newIseed);
   const real_type Yknown = data.Ytravel + data.Yendog;
   const real_type Y = dust::math::ceil(Yknown + data.Yunk);
+  const real_type model_newIendog = model_newI - model_newIseed;
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
     real_type ll_cases = ll_nbinom(Y, cases, odin(kappa_cases),
                                    odin(exp_noise), rng_state);
     real_type ll_travel = ll_betabinom(data.Ytravel, data.Yendog,
-                                       model_newIseed, model_newI,
+                                       model_newIseed, model_newIendog,
                                        odin(rho_travel), odin(exp_noise),
                                        rng_state);
     ret = ll_cases + ll_travel;

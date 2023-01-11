@@ -56,7 +56,7 @@ reference_compare <- function(state, observed, pars) {
 
     t2 <- ifelse(log, 0, 1)
     if ((Ytravel + Yendog) > 0) {
-      t2 <- dbinom(ceiling(Ytravel), size = ceiling(Ytravel + Yendog), prob = newIseed / (newIseed + newI), log = log)
+      t2 <- dbinom(ceiling(Ytravel), size = ceiling(Ytravel + Yendog), prob = newIseed / newI, log = log)
     }
     if (is.na(t2)) {
       t2 <- ifelse(log, -Inf, 0)

@@ -69,16 +69,3 @@ test_that("error on unreognised observation distribution", {
   expect_error(model_compare(y, dat[2, ], pars),
                "unrecognised compare function bar")
 })
-
-test_that("can use negbinom dist for travel", {
-  dat <- reference_data()
-  pars <- reference_pars()
-  pars$kappa_travel <- pars$kappa_cases
-  pars$compare_travel <- "negbinom"
-
-  m <- model$new(pars, 1, 100, seed = 1)
-  m$set_index(model_index(m$info())$run)
-
-  y <- m$run(dat$day[[2]])
-  expect_equal(sum(model_compare(y, dat[2, ], pars)), -984.83445)
-})

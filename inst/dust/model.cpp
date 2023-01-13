@@ -214,7 +214,13 @@ compare(const typename T::real_type * state,
 
     real_type ll_travel = 0;
     if (Yknown > 0) {
-      ll_travel = model_newI == 0 ? -inf<real_type> : dust::density::binomial(dust::math::ceil(data.Ytravel), dust::math::ceil(Yknown), model_p, true);
+      if (model_newI == 0) {
+      ll_travel = -inf<real_type>;
+      } else {
+        ll_travel = dust::density::binomial(dust::math::ceil(data.Ytravel),
+                                            dust::math::ceil(Yknown),
+                                            model_p, true);
+      }
     }
 
     ret = ll_cases + ll_travel;

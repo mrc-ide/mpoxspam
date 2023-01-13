@@ -202,20 +202,27 @@ compare(const typename T::real_type * state,
   const real_type model_newI = state[19];
   const real_type delta = calc_delta(shared->delta0, shared->delta1,
                                      shared->delta_slope, state[32]);
-  const real_type cases = dust::math::ceil(model_newI  * delta);
-  const real_type model_newIseed = state[21];
+  const real_type cases = dust::math::ceil(model_newI * delta);
   const real_type Yknown = data.Ytravel + data.Yendog;
   const real_type Y = dust::math::ceil(Yknown + data.Yunk);
-  const real_type model_newIendog = model_newI - model_newIseed;
+  const real_type model_p = state[21] / model_newI;
 
   real_type ret = 0;
   if (!std::isnan(Y)) {
     real_type ll_cases = ll_nbinom(Y, cases, shared->kappa_cases,
                                    shared->exp_noise, rng_state);
-    real_type ll_travel = ll_betabinom(data.Ytravel, data.Yendog,
-                                       model_newIseed, model_newIendog,
-                                       shared->rho_travel, shared->exp_noise,
-                                       rng_state);
+
+    real_type ll_travel = 0;
+    if (Yknown > 0) {
+      if (model_newI == 0) {
+      ll_travel = -inf<real_type>;
+      } else {
+        ll_travel = dust::density::binomial(dust::math::ceil(data.Ytravel),
+                                            dust::math::ceil(Yknown),
+                                            model_p, true);
+      }
+    }
+
     ret = ll_cases + ll_travel;
   }
 

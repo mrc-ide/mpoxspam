@@ -37,6 +37,13 @@ xinit <- i0 / N
 initial(time) <- step + 1
 update(time) <- step + 1
 
+stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
+# only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day
+beta_step[] <- user()
+dseedrate_step[] <- user()
+dim(beta_step) <- user()
+dim(dseedrate_step) <- user()
+
 beta0 <- user(2.25)
 beta_freq <- user(7)
 beta_sd <- user(0.15)  # 1 = 2*sqrt( (75/7)*sigma2 )
@@ -99,9 +106,19 @@ dot_thetaf <- thetaf * theta_vacc_use
 dot_thetag <- thetag * theta_vacc_use
 dot_thetah <- thetah * theta_vacc_use
 
-dseedrate_next <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else dseedrate
+## used if stochastic_behaviour == 0
+beta_det <- if (as.integer(step) >= length(beta_step))
+  beta_step[length(beta_step)] else beta_step[step + 1]
+dseedrate_det <- if (as.integer(step) >= length(dseedrate_step))
+  dseedrate_step[length(dseedrate_step)] else dseedrate_step[step + 1]
+
+## used if stochastic_behaviour == 1
+dseedrate_rw <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else dseedrate
+beta_rw <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
+
+dseedrate_next <- if (stochastic_behaviour) dseedrate_rw else dseedrate_det
 seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next)
-beta_next <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
+beta_next <- if (stochastic_behaviour) beta_rw else beta_det
 
 MSf <- dot_thetaf * S_vacc_use * fp(dot_thetaf) / fp1
 MSg <- dot_thetag * S_vacc_use * gp(dot_thetag) / gp1

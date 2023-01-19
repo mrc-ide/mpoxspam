@@ -112,7 +112,10 @@ reference_pars <- function() {
        kappa_cases = 1,
        rho_travel = 0.5,
        compare_cases = "binom",
-       compare_travel = "binom")
+       compare_travel = "binom",
+       stochastic_behaviour = 1,
+       beta_step = c(0, 0),
+       dseedrate_step = c(0, 0))
 }
 
 

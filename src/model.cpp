@@ -300,6 +300,8 @@ compare(const typename T::real_type * state,
   return ret;
 }
 // [[dust::class(model)]]
+// [[dust::param(beta_step, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(dseedrate_step, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(N, has_default = TRUE, default_value = 750000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta0, has_default = TRUE, default_value = 2.25, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_freq, has_default = TRUE, default_value = 7L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -320,6 +322,7 @@ compare(const typename T::real_type * state,
 // [[dust::param(rho_travel, has_default = TRUE, default_value = 0.5, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(seedrate0, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(seedrate_sd, has_default = TRUE, default_value = 0.75, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(stochastic_behaviour, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(use_new_compare, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_doses, has_default = TRUE, default_value = 50000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vacc_duration, has_default = TRUE, default_value = 55L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -343,10 +346,14 @@ public:
     real_type beta0;
     real_type beta_freq;
     real_type beta_sd;
+    std::vector<real_type> beta_step;
     real_type cumulative_partners_days;
     real_type delta0;
     real_type delta1;
     real_type delta_slope;
+    int dim_beta_step;
+    int dim_dseedrate_step;
+    std::vector<real_type> dseedrate_step;
     real_type etaf;
     real_type etag;
     real_type exp_noise;
@@ -394,6 +401,7 @@ public:
     real_type rho_travel;
     real_type seedrate0;
     real_type seedrate_sd;
+    real_type stochastic_behaviour;
     real_type use_new_compare;
     real_type vacc_amt;
     real_type vacc_doses;
@@ -487,41 +495,41 @@ public:
     const real_type beta = state[30];
     real_type I_next = dust::math::max(static_cast<real_type>(0), I + shared->gamma0 * E - shared->gamma1 * I);
     real_type R_next = dust::math::max(static_cast<real_type>(0), R + shared->gamma1 * I);
-    real_type beta_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::math::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
+    real_type beta_rw = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::math::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, beta, shared->beta_sd)) : beta);
     real_type dMIf = - shared->gamma1 * MIf + shared->gamma0 * MEf;
     real_type dMIg = - shared->gamma1 * MIg + shared->gamma0 * MEg;
     real_type dMIh = - shared->gamma1 * MIh + shared->gamma0 * MEh;
-    real_type dseedrate_next = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::random::normal<real_type>(rng_state, dseedrate, shared->seedrate_sd) : dseedrate);
+    real_type dseedrate_rw = (fmodr<real_type>(time, shared->beta_freq) == 0 ? dust::random::normal<real_type>(rng_state, dseedrate, shared->seedrate_sd) : dseedrate);
     real_type reset_weekly = fmodr<real_type>(step, 7) == 0;
     state_next[32] = step + 1;
     real_type add_vaccine = (time >= shared->vacc_start_day) && (time <= shared->vacc_fin_day) && ((fmodr<real_type>((time - shared->vacc_start_day), shared->vacc_freq)) == 0);
+    real_type beta_det = (static_cast<int>(step) >= shared->dim_beta_step ? shared->beta_step[shared->dim_beta_step - 1] : shared->beta_step[step + 1 - 1]);
+    real_type dseedrate_det = (static_cast<int>(step) >= shared->dim_dseedrate_step ? shared->dseedrate_step[shared->dim_dseedrate_step - 1] : shared->dseedrate_step[step + 1 - 1]);
     real_type newI_next = ((reset_weekly ? 0 : newI)) + shared->gamma0 * E;
     real_type newIseed_next = ((reset_weekly ? 0 : newIseed)) + shared->gamma0 * Eseed;
-    real_type rf = beta_next * static_cast<real_type>(1.5) / (real_type) 7;
-    real_type rg = beta_next * 1 / (real_type) 7;
-    real_type seedrate_next = dust::math::max(static_cast<real_type>(0), seedrate + dseedrate_next);
     state_next[17] = I_next;
     state_next[5] = dust::math::max(static_cast<real_type>(0), MIf + dMIf);
     state_next[11] = dust::math::max(static_cast<real_type>(0), MIg + dMIg);
     state_next[14] = dust::math::max(static_cast<real_type>(0), MIh + dMIh);
     state_next[18] = R_next;
-    state_next[30] = beta_next;
-    state_next[27] = dseedrate_next;
     real_type S_vacc_use = (add_vaccine ? S_vacc * (1 - shared->amt_random) : S_vacc);
+    real_type beta_next = (shared->stochastic_behaviour ? beta_rw : beta_det);
+    real_type dseedrate_next = (shared->stochastic_behaviour ? dseedrate_rw : dseedrate_det);
     real_type theta_vacc_use = (add_vaccine ? update_theta_vacc4_2(theta_vacc, shared->amt_targetted, shared->hshape, shared->hrate) : theta_vacc);
-    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next);
     state_next[19] = newI_next;
     state_next[21] = newIseed_next;
-    state_next[26] = seedrate_next;
-    real_type Eseed_next = dust::math::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed);
     real_type dot_thetaf = thetaf * theta_vacc_use;
     real_type dot_thetag = thetag * theta_vacc_use;
     real_type dot_thetah = thetah * theta_vacc_use;
     real_type red_f = (theta_vacc_use * fp(theta_vacc_use)) / (real_type) (theta_vacc * fp(theta_vacc));
     real_type red_g = (theta_vacc_use * gp(theta_vacc_use)) / (real_type) (theta_vacc * gp(theta_vacc));
+    real_type rf = beta_next * static_cast<real_type>(1.5) / (real_type) 7;
+    real_type rg = beta_next * 1 / (real_type) 7;
+    real_type seedrate_next = dust::math::max(static_cast<real_type>(0), seedrate + dseedrate_next);
     real_type trateh = dust::math::max(static_cast<real_type>(0), beta_next * MIh * shared->N * shared->hp1 * S_vacc_use);
     state_next[29] = S_vacc_use;
-    state_next[25] = cuts + transmseed;
+    state_next[30] = beta_next;
+    state_next[27] = dseedrate_next;
     state_next[28] = theta_vacc_use;
     real_type MSf = dot_thetaf * S_vacc_use * fp(dot_thetaf) / (real_type) shared->fp1;
     real_type MSg = dot_thetag * S_vacc_use * gp(dot_thetag) / (real_type) shared->gp1;
@@ -529,11 +537,13 @@ public:
     real_type meanfield_delta_si_g = (dot_thetag * gpp(dot_thetag) / (real_type) gp(dot_thetag));
     real_type meanfield_delta_si_h = (1 + dot_thetah * hpp(dot_thetah, shared->hshape, shared->hrate) / (real_type) hp(dot_thetah, shared->hshape, shared->hrate));
     real_type transmh = dust::random::poisson<real_type>(rng_state, trateh);
+    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next);
     real_type u2f = (dot_thetaf * fpp(dot_thetaf) + dust::math::pow(dot_thetaf, 2) * fppp(dot_thetaf)) / (real_type) fp(dot_thetaf);
     real_type u2g = (dot_thetag * gpp(dot_thetag) + dust::math::pow(dot_thetag, 2) * gppp(dot_thetag)) / (real_type) gp(dot_thetag);
-    state_next[20] = Eseed_next;
+    state_next[26] = seedrate_next;
     real_type vaccine_scale_f = (add_vaccine ? (1 - shared->amt_random) * red_f : 1);
     real_type vaccine_scale_g = (add_vaccine ? (1 - shared->amt_random) * red_g : 1);
+    real_type Eseed_next = dust::math::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed);
     real_type MSEf_vacc = MSEf * vaccine_scale_f;
     real_type MSEg_vacc = MSEg * vaccine_scale_g;
     real_type MSIf_vacc = MSIf * vaccine_scale_f;
@@ -545,10 +555,12 @@ public:
     real_type u1g = meanfield_delta_si_g;
     real_type u1h = meanfield_delta_si_h;
     state_next[24] = cuth + transmh;
+    state_next[25] = cuts + transmseed;
     real_type dSh = hp(dot_thetah, shared->hshape, shared->hrate) * dthetah;
     real_type tratef = dust::math::max(static_cast<real_type>(0), MSIf_vacc * shared->N * shared->fp1 * rf);
     real_type trateg = dust::math::max(static_cast<real_type>(0), MSIg_vacc * shared->N * shared->gp1 * rg);
     real_type u2h = hppp(dot_thetah, shared->hshape, shared->hrate) * dust::math::pow(dot_thetah, 2) / (real_type) hp(dot_thetah, shared->hshape, shared->hrate) + 2 * dot_thetah * hpp(dot_thetah, shared->hshape, shared->hrate) / (real_type) hp(dot_thetah, shared->hshape, shared->hrate) + u1h;
+    state_next[20] = Eseed_next;
     state_next[12] = dust::math::max(static_cast<real_type>(static_cast<real_type>(1.0000000000000001e-09)), dust::math::min(static_cast<real_type>(1), thetah + dthetah));
     real_type vf = u2f - dust::math::pow(u1f, 2);
     real_type vg = u2g - dust::math::pow(u1g, 2);
@@ -868,6 +880,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->rho_travel = static_cast<real_type>(0.5);
   shared->seedrate0 = static_cast<real_type>(0.75);
   shared->seedrate_sd = static_cast<real_type>(0.75);
+  shared->stochastic_behaviour = 1;
   shared->use_new_compare = 0;
   shared->vacc_doses = 50000;
   shared->vacc_duration = 55;
@@ -880,10 +893,16 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->beta0 = user_get_scalar<real_type>(user, "beta0", shared->beta0, NA_REAL, NA_REAL);
   shared->beta_freq = user_get_scalar<real_type>(user, "beta_freq", shared->beta_freq, NA_REAL, NA_REAL);
   shared->beta_sd = user_get_scalar<real_type>(user, "beta_sd", shared->beta_sd, NA_REAL, NA_REAL);
+  std::array <int, 1> dim_beta_step;
+  shared->beta_step = user_get_array_variable<real_type, 1>(user, "beta_step", shared->beta_step, dim_beta_step, NA_REAL, NA_REAL);
+  shared->dim_beta_step = shared->beta_step.size();
   shared->cumulative_partners_days = user_get_scalar<real_type>(user, "cumulative_partners_days", shared->cumulative_partners_days, NA_REAL, NA_REAL);
   shared->delta0 = user_get_scalar<real_type>(user, "delta0", shared->delta0, NA_REAL, NA_REAL);
   shared->delta1 = user_get_scalar<real_type>(user, "delta1", shared->delta1, NA_REAL, NA_REAL);
   shared->delta_slope = user_get_scalar<real_type>(user, "delta_slope", shared->delta_slope, NA_REAL, NA_REAL);
+  std::array <int, 1> dim_dseedrate_step;
+  shared->dseedrate_step = user_get_array_variable<real_type, 1>(user, "dseedrate_step", shared->dseedrate_step, dim_dseedrate_step, NA_REAL, NA_REAL);
+  shared->dim_dseedrate_step = shared->dseedrate_step.size();
   shared->etaf = user_get_scalar<real_type>(user, "etaf", shared->etaf, NA_REAL, NA_REAL);
   shared->etag = user_get_scalar<real_type>(user, "etag", shared->etag, NA_REAL, NA_REAL);
   shared->exp_noise = user_get_scalar<real_type>(user, "exp_noise", shared->exp_noise, NA_REAL, NA_REAL);
@@ -896,6 +915,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->rho_travel = user_get_scalar<real_type>(user, "rho_travel", shared->rho_travel, NA_REAL, NA_REAL);
   shared->seedrate0 = user_get_scalar<real_type>(user, "seedrate0", shared->seedrate0, NA_REAL, NA_REAL);
   shared->seedrate_sd = user_get_scalar<real_type>(user, "seedrate_sd", shared->seedrate_sd, NA_REAL, NA_REAL);
+  shared->stochastic_behaviour = user_get_scalar<real_type>(user, "stochastic_behaviour", shared->stochastic_behaviour, NA_REAL, NA_REAL);
   shared->use_new_compare = user_get_scalar<real_type>(user, "use_new_compare", shared->use_new_compare, NA_REAL, NA_REAL);
   shared->vacc_doses = user_get_scalar<real_type>(user, "vacc_doses", shared->vacc_doses, NA_REAL, NA_REAL);
   shared->vacc_duration = user_get_scalar<real_type>(user, "vacc_duration", shared->vacc_duration, NA_REAL, NA_REAL);

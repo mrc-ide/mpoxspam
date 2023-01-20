@@ -108,6 +108,61 @@ real_type hppp(real_type x, real_type hs, real_type hr) {
     (hs * hs + 3 * hs + 2 * dust::math::pow(hr - dust::math::log(x), 2) - 3 * (hr - dust::math::log(x)) * (hs + 1) + 2) / (x * x * x * dust::math::pow(hr - dust::math::log(x), 3));
 }
 
+
+
+
+
+// pgfs for unvaccinated H :
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type hu(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  //~ return ( h(x,hs,hr) - hv( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ) )/norm; 
+  const real_type num = h(thetav*x,hs,hr) - vr*V1*v1eff*h(thetav*x,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*x,hs,hr) ;
+  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
+  //~ const real_type num = (1.0-vr*(v1eff*V1+(1-v1eff)*v2eff*V2))*h(x,hs,hr) + h(thetav*x,hs,hr);
+  //~ const real_type den = (1.0-vr*(v1eff*V1+(1-v1eff)*v2eff*V2))*h(1.0,hs,hr) - h(thetav*1.0,hs,hr);
+  return num / den ; 
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type hup(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  //~ return hp(x,hs,hr) - hvp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  const real_type num = thetav*hp(thetav*x,hs,hr) - thetav*vr*V1*v1eff*hp(thetav*x,hs,hr) - thetav*vr*V2*v2eff*(1-v1eff)*hp(thetav*x,hs,hr) ;
+  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
+  return num / den ; 
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type hupp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  //~ return hpp(x,hs,hr) - hvpp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  const real_type num = thetav*thetav*hpp(thetav*x,hs,hr) - thetav*thetav*vr*V1*v1eff*hpp(thetav*x,hs,hr) - thetav*thetav*vr*V2*v2eff*(1-v1eff)*hpp(thetav*x,hs,hr) ;
+  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
+  return num / den ; 
+}
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type huppp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
+  static_assert(std::is_floating_point<real_type>::value, "use with integral type");
+  //~ return hppp(x,hs,hr) - hvppp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  const real_type num = thetav*thetav*thetav*hppp(thetav*x,hs,hr) - thetav*thetav*thetav*vr*V1*v1eff*hppp(thetav*x,hs,hr) - thetav*thetav*thetav*vr*V2*v2eff*(1-v1eff)*hppp(thetav*x,hs,hr) ;
+  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
+  return num / den ; 
+}
+
+
+
+
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
@@ -128,6 +183,27 @@ real_type update_theta_vacc4_2(real_type theta_vacc, real_type amt_targetted,
                   };
   return dust::math::exp(lostturnip::find<real_type>(fn, -1e4, 0, tol, 1000));
 }
+
+// [[odin.dust::register]]
+template <typename real_type>
+__host__ __device__
+real_type update_theta_vacc4_3( real_type prop_vacc_targetted,
+                               real_type hshape, real_type hrate) {
+  // Somewhat annoyingly, we can do this as constexpr in gcc but it's
+  // not portable as sqrt() is not constexpr in any version of the
+  // standard. It's possible that the compiler will work this out for
+  // us?
+  const real_type tol = dust::math::sqrt(eps<real_type>);
+  const real_type p1 = 1.0-dust::math::max(static_cast<real_type>(0.0001), prop_vacc_targetted);
+  // There's a small optimisation that can be made here by avoiding
+  // doing log(exp(x)) in h
+  const auto fn = [&](real_type x) {
+                    return  dust::math::pow(1 - x / hrate, -hshape) - p1;
+                  };
+  return dust::math::exp(lostturnip::find<real_type>(fn, -1e6, 0, tol, 1000));
+}
+
+
 
 template <typename real_type, typename rng_state_type>
 __host__ __device__

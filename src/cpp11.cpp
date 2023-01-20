@@ -178,6 +178,13 @@ extern "C" SEXP _mpoxspam_test_update_theta_vacc4_2(SEXP theta_vacc, SEXP amt_ta
   END_CPP11
 }
 // test_support.cpp
+double test_update_theta_vacc4_3(double prop_vacc_targetted, double hshape, double hrate);
+extern "C" SEXP _mpoxspam_test_update_theta_vacc4_3(SEXP prop_vacc_targetted, SEXP hshape, SEXP hrate) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(test_update_theta_vacc4_3(cpp11::as_cpp<cpp11::decay_t<double>>(prop_vacc_targetted), cpp11::as_cpp<cpp11::decay_t<double>>(hshape), cpp11::as_cpp<cpp11::decay_t<double>>(hrate)));
+  END_CPP11
+}
+// test_support.cpp
 double test_ll_nbinom(double data, double model, double kappa, double exp_noise, cpp11::sexp rng_ptr);
 extern "C" SEXP _mpoxspam_test_ll_nbinom(SEXP data, SEXP model, SEXP kappa, SEXP exp_noise, SEXP rng_ptr) {
   BEGIN_CPP11
@@ -220,6 +227,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mpoxspam_test_ll_betabinom",                      (DL_FUNC) &_mpoxspam_test_ll_betabinom,                      7},
     {"_mpoxspam_test_ll_nbinom",                         (DL_FUNC) &_mpoxspam_test_ll_nbinom,                         5},
     {"_mpoxspam_test_update_theta_vacc4_2",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,              4},
+    {"_mpoxspam_test_update_theta_vacc4_3",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_3,              3},
     {NULL, NULL, 0}
 };
 }

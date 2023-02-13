@@ -9,7 +9,7 @@ test_that("can run filter", {
   ll <- filter$run(pars)
   ## Smoke test, will need updating on changes to basically anything,
   ## but guard against unexpected changes.
-  expect_equal(ll, -927.94100164507)
+  expect_equal(ll, -1040.64251508225)
 })
 
 
@@ -23,7 +23,7 @@ test_that("can run filter with compiled compare", {
   ## Smoke test, will need updating on changes to basically anything,
   ## but guard against unexpected changes; wildly different to above,
   ## but that's expected with a small number of particles.
-  expect_equal(ll, -291.58625280966)
+  expect_equal(ll, -259.362481636606)
 })
 
 
@@ -35,7 +35,7 @@ test_that("can run filter with negative/beta binomial likelihood", {
   set.seed(1)
   filter <- model_filter(dat, n_particles = 100, n_threads = 1, seed = 1L)
   ll <- filter$run(pars)
-  expect_equal(ll, -274.251863608737)
+  expect_equal(ll, -264.393877886148)
 })
 
 test_that("can run filter with negative/negative binomial likelihood", {
@@ -47,5 +47,5 @@ test_that("can run filter with negative/negative binomial likelihood", {
   set.seed(1)
   filter <- model_filter(dat, n_particles = 100, n_threads = 1, seed = 1L)
   ll <- filter$run(pars)
-  expect_equal(ll, -247.481051609677)
+  expect_equal(ll, -255.948578340671)
 })

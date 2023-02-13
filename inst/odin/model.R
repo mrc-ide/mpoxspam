@@ -47,6 +47,13 @@ hp1 <- hp(as.numeric(1), hshape, hrate)
 initial(time) <- step + 1
 update(time) <- step + 1
 
+stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
+# only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day
+beta_step[] <- user()
+dseedrate_step[] <- user()
+dim(beta_step) <- user()
+dim(dseedrate_step) <- user()
+
 beta0 <- user(2.25)
 beta_freq <- user(7)
 beta_sd <- user(0.15)  # 1 = 2*sqrt( (75/7)*sigma2 )
@@ -121,9 +128,19 @@ MSIg_vacc <- MSIg * vaccine_scale_g
 MSf <- thetaf * (1-veff) * fp(thetaf) / fp1
 MSg <- thetag * (1-veff) * gp(thetag) / gp1
 
-dseedrate_next <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else dseedrate
+## used if stochastic_behaviour == 0
+beta_det <- if (as.integer(step) >= length(beta_step))
+  beta_step[length(beta_step)] else beta_step[step + 1]
+dseedrate_det <- if (as.integer(step) >= length(dseedrate_step))
+  dseedrate_step[length(dseedrate_step)] else dseedrate_step[step + 1]
+
+## used if stochastic_behaviour == 1
+dseedrate_rw <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else dseedrate
+beta_rw <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
+
+dseedrate_next <- if (stochastic_behaviour) dseedrate_rw else dseedrate_det
 seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next)
-beta_next <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
+beta_next <- if (stochastic_behaviour) beta_rw else beta_det
 
 ## factor 1.5 / 7 is act rate per day; factor 1.5 b/c more contacts
 ## per week in long partnerships

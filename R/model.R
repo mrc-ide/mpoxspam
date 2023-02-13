@@ -112,14 +112,11 @@ model_compare <- function(state, observed, pars) {
 ##'
 ##' @export
 model_index <- function(info) {
-  list(run = c(newI = info$index$newI,
-               newIseed = info$index$newIseed,
-               time = info$index$time),
-       state = c(cumulative_partners = info$index$cumulative_partners,
-                 seedrate = info$index$seedrate,
-                 I = info$index$I,
-                 newI = info$index$newI,
-                 newIseed = info$index$newIseed))
+  run <- c("newI", "newIseed", "time")
+  state <- c("newI", "newIseed", "cumulative_partners", "S_vacc", "I", "R",
+             "beta", "seedrate", "dseedrate")
+  index <- unlist(info$index)
+  list(run = index[run], state = index[state])
 }
 
 

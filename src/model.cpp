@@ -212,12 +212,12 @@ template <typename real_type>
 __host__ __device__
 real_type hu(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  //~ return ( h(x,hs,hr) - hv( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ) )/norm; 
+  //~ return ( h(x,hs,hr) - hv( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ) )/norm;
   const real_type num = h(thetav*x,hs,hr) - vr*V1*v1eff*h(thetav*x,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*x,hs,hr) ;
-  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
+  const real_type den = h(thetav,hs,hr) - vr*V1*v1eff*h(thetav,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav,hs,hr) ;
   //~ const real_type num = (1.0-vr*(v1eff*V1+(1-v1eff)*v2eff*V2))*h(x,hs,hr) + h(thetav*x,hs,hr);
-  //~ const real_type den = (1.0-vr*(v1eff*V1+(1-v1eff)*v2eff*V2))*h(1.0,hs,hr) - h(thetav*1.0,hs,hr);
-  return num / den ; 
+  //~ const real_type den = (1.0-vr*(v1eff*V1+(1-v1eff)*v2eff*V2))*h(1.0,hs,hr) - h(thetav,hs,hr);
+  return num / den ;
 }
 
 // [[odin.dust::register]]
@@ -225,10 +225,10 @@ template <typename real_type>
 __host__ __device__
 real_type hup(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  //~ return hp(x,hs,hr) - hvp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  //~ return hp(x,hs,hr) - hvp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
   const real_type num = thetav*hp(thetav*x,hs,hr) - thetav*vr*V1*v1eff*hp(thetav*x,hs,hr) - thetav*vr*V2*v2eff*(1-v1eff)*hp(thetav*x,hs,hr) ;
-  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
-  return num / den ; 
+  const real_type den = h(thetav,hs,hr) - vr*V1*v1eff*h(thetav,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav,hs,hr) ;
+  return num / den ;
 }
 
 // [[odin.dust::register]]
@@ -236,10 +236,10 @@ template <typename real_type>
 __host__ __device__
 real_type hupp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  //~ return hpp(x,hs,hr) - hvpp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  //~ return hpp(x,hs,hr) - hvpp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
   const real_type num = thetav*thetav*hpp(thetav*x,hs,hr) - thetav*thetav*vr*V1*v1eff*hpp(thetav*x,hs,hr) - thetav*thetav*vr*V2*v2eff*(1-v1eff)*hpp(thetav*x,hs,hr) ;
-  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
-  return num / den ; 
+  const real_type den = h(thetav,hs,hr) - vr*V1*v1eff*h(thetav,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav,hs,hr) ;
+  return num / den ;
 }
 
 // [[odin.dust::register]]
@@ -247,10 +247,10 @@ template <typename real_type>
 __host__ __device__
 real_type huppp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  //~ return hppp(x,hs,hr) - hvppp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr ); 
+  //~ return hppp(x,hs,hr) - hvppp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
   const real_type num = thetav*thetav*thetav*hppp(thetav*x,hs,hr) - thetav*thetav*thetav*vr*V1*v1eff*hppp(thetav*x,hs,hr) - thetav*thetav*thetav*vr*V2*v2eff*(1-v1eff)*hppp(thetav*x,hs,hr) ;
-  const real_type den = h(thetav*1.0,hs,hr) - vr*V1*v1eff*h(thetav*1.0,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav*1.0,hs,hr) ;
-  return num / den ; 
+  const real_type den = h(thetav,hs,hr) - vr*V1*v1eff*h(thetav,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(thetav,hs,hr) ;
+  return num / den ;
 }
 
 

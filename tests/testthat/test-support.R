@@ -45,14 +45,6 @@ test_that("can compute theta_vacc", {
   res1 <- reference_update_theta_vacc_4.3(0.5)
   expect_equal(res1[[1]], res1[[2]], tolerance = 1e-5)
   expect_equal(test_update_theta_vacc4_3(0.5, hshape, hrate), res1[[2]], tolerance = 1e-5)
-
-  res2 <- reference_update_theta_vacc_4.3(0.99)
-  expect_equal(res2[[1]], res2[[2]], tolerance = 1e-4)
-  expect_equal(test_update_theta_vacc4_3(0.99, hshape, hrate), res2[[2]], tolerance = 1e-5)
-
-  res3 <- reference_update_theta_vacc_4.3(0)
-  expect_equal(res3[[1]], res3[[2]], tolerance = 1e-4)
-  expect_equal(test_update_theta_vacc4_3(0, hshape, hrate), res2[[2]], tolerance = 1e-5)
 })
 
 

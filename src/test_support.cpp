@@ -24,6 +24,11 @@ double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted, double
 }
 
 [[cpp11::register]]
+double test_update_theta_vacc4_3(double prop_vacc_targetted, double hshape, double hrate) {
+  return update_theta_vacc4_3(prop_vacc_targetted, hshape, hrate);
+}
+
+[[cpp11::register]]
 double test_ll_nbinom(double data, double model, double kappa,
                       double exp_noise, cpp11::sexp rng_ptr) {
   auto rng =

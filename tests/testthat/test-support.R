@@ -34,13 +34,17 @@ test_that("h functions agree", {
 test_that("can compute theta_vacc", {
   hshape <- 0.26
   hrate <- 1.85 * 7
-  res1 <- reference_update_theta_vacc(1, 0.00063)
+  res1 <- reference_update_theta_vacc_4.2(1, 0.00063)
   expect_equal(res1[[1]], res1[[2]], tolerance = 1e-5)
   expect_equal(test_update_theta_vacc4_2(1, 0.00063, hshape, hrate), res1[[2]], tolerance = 1e-5)
 
-  res2 <- reference_update_theta_vacc(0.96950, 0.00063)
+  res2 <- reference_update_theta_vacc_4.2(0.96950, 0.00063)
   expect_equal(res2[[1]], res2[[2]], tolerance = 1e-4)
   expect_equal(test_update_theta_vacc4_2(0.96950, 0.00063, hshape, hrate), res2[[2]], tolerance = 1e-5)
+
+  res1 <- reference_update_theta_vacc_4.3(0.5)
+  expect_equal(res1[[1]], res1[[2]], tolerance = 1e-5)
+  expect_equal(test_update_theta_vacc4_3(0.5, hshape, hrate), res1[[2]], tolerance = 1e-5)
 })
 
 

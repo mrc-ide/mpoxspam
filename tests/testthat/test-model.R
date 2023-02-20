@@ -54,7 +54,7 @@ test_that("model run agrees with reference", {
 
   expect_equal(res, reference)
 
-})
+}
 
 test_that("when beta = 0 all infections are from travel", {
   pars <- reference_pars()

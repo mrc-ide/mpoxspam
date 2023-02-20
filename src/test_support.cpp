@@ -43,3 +43,13 @@ double test_ll_betabinom(double data_a, double data_b, double model_a, double mo
     dust::random::r::rng_pointer_get<dust::random::xoshiro256plus>(rng_ptr);
   return ll_betabinom(data_a, data_b, model_a, model_b, rho, exp_noise, rng->state(0));
 }
+
+[[cpp11::register]]
+cpp11::doubles test_hu(double x,double vr, double V1, double V2, double v1eff,
+               double v2eff, double thetav, double hs, double hr) {
+  return cpp11::writable::doubles({
+    hu(x,vr, V1, V2, v1eff, v2eff, thetav, hs, hr),
+    hup(x, vr, V1, V2, v1eff, v2eff, thetav,hs, hr),
+    hupp(x, vr, V1, V2, v1eff, v2eff, thetav,hs, hr),
+    huppp(x,vr, V1, V2, v1eff, v2eff, thetav, hs, hr)});
+  }

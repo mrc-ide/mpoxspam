@@ -96,6 +96,19 @@ test_that("ll_nbinom behaves in corner cases", {
   expect_equal(test_ll_nbinom(NA, 0, 0.5, Inf, rng), 0)
 })
 
+test_that("new h functions agree", {
+  hshape <- 0.26
+  hrate <- 1.85 * 7
+
+  expect_equal(test_h(1, hshape, hrate),
+               test_hu(1, vr = 1, V1 = 0, V2 = 0, v1eff = 0, v2eff = 0,
+                       thetav = 1, hshape, hrate)
+  )
+  expect_equal(test_h(0.342, hshape, hrate),
+               test_hu(0.342, vr = 1, V1 = 0, V2 = 0, v1eff = 0, v2eff = 0,
+                       thetav = 1, hshape, hrate))
+})
+
 
 test_that("compiled ll_betabinom agrees", {
   rng <- dust:::dust_rng_pointer$new(seed = 1L)

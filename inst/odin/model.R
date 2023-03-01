@@ -157,9 +157,9 @@ dSf <- fp(thetaf) * dthetaf # note prop to transm
 meanfield_delta_si_f <- (thetaf * fpp(thetaf) / fp(thetaf))
 u1f <- meanfield_delta_si_f
 u2f <- (thetaf * fpp(thetaf) + thetaf^2 * fppp(thetaf)) / fp(thetaf)
-vf <- u2f - u1f^2
+vf <- min(  u2f - u1f^2, 2*meanfield_delta_si_f )
 delta_si_f <- (if (transmf == 0) 0
-               else rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))
+               else min(meanfield_delta_si_f*2,max(as.numeric(0),rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))))
 
 trateg <- max(as.numeric(0), MSIg_vacc * N * gp1 * rg)
 transmg <- rpois(trateg)
@@ -168,11 +168,11 @@ dSg <- gp(thetag) * dthetag # note prop to transm
 meanfield_delta_si_g <- (thetag * gpp(thetag) / gp(thetag))
 u1g <- meanfield_delta_si_g
 u2g <- (thetag * gpp(thetag) + thetag^2 * gppp(thetag)) / gp(thetag)
-vg <- u2g - u1g^2
+vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
-               else rnorm(meanfield_delta_si_g, sqrt(vg / transmg)))
+               else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
-transmseed <- rpois(seedrate_next)
+transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
 
 
 trateh <- max(as.numeric(0), beta_next * MIh * N * hp1 * (S/N)*(1-V1*vacc_efficacy+V2*(1-vacc_efficacy)*vacc_efficacy2) )
@@ -192,9 +192,9 @@ u2h <- huppp(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta
   hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2,theta_vacc_use, hshape, hrate) +
   2 * thetah * hupp(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2,theta_vacc_use, hshape, hrate) /
   hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2,theta_vacc_use, hshape, hrate) + u1h
-vh <- u2h - u1h^2
+vh <- min( u2h - u1h^2 , 2*meanfield_delta_si_h)
 delta_si_h <- (if (transmh == 0) 0
-               else rnorm(meanfield_delta_si_h, sqrt(vh / transmh)))
+               else min(meanfield_delta_si_h*2,max(as.numeric(0),rnorm(meanfield_delta_si_h, sqrt(vh / transmh)))))
 
 # record mean and variance of cumulative partners over past x days among new infections
 tauf <- (transmf / (transmf + transmg + transmh + transmseed))
@@ -290,23 +290,19 @@ R_next <- max(as.numeric(0), R + gamma1 * I)
 newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed # will accumulate between obvs
 Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
 
-## At this point, Erik checks that there are no na values in
-## dtheta[fgh], dMS[EI][fgh], dM[EI][fgh], hopefully we do not need to
-## do this.
-
 
 ## Need as.numeric here to get a good cast to the correct real type
 update(thetaf) <- max(as.numeric(1e-9), min(as.numeric(1), thetaf + dthetaf))
-update(MSEf) <- max(as.numeric(0), MSEf_vacc + dMSEf)
+update(MSEf) <- max(as.numeric(0), min(as.numeric(1), MSEf_vacc + dMSEf) )
 update(MEf) <- max(as.numeric(0), MEf + dMEf)
-update(MSSf) <- max(as.numeric(0), MSSf_vacc + dMSSf)
-update(MSIf) <- max(as.numeric(0), MSIf_vacc + dMSIf)
+update(MSSf) <- max(as.numeric(0), min( as.numeric(1), MSSf_vacc + dMSSf) )
+update(MSIf) <- max(as.numeric(0), min( as.numeric(1) ,  MSIf_vacc + dMSIf) )
 update(MIf) <- max(as.numeric(0), MIf + dMIf)
 update(thetag) <- max(as.numeric(1e-9), min(as.numeric(1), thetag + dthetag))
-update(MSEg) <- max(as.numeric(0), MSEg_vacc + dMSEg)
+update(MSEg) <- max(as.numeric(0), min( as.numeric(1), MSEg_vacc + dMSEg))
 update(MEg) <- max(as.numeric(0), MEg + dMEg)
-update(MSSg) <- max(as.numeric(0), MSSg_vacc + dMSSg)
-update(MSIg) <- max(as.numeric(0), MSIg_vacc + dMSIg)
+update(MSSg) <- max(as.numeric(0), min( as.numeric(1), MSSg_vacc + dMSSg) )
+update(MSIg) <- max(as.numeric(0), min( as.numeric(1), MSIg_vacc + dMSIg) )
 update(MIg) <- max(as.numeric(0), MIg + dMIg)
 update(thetah) <- max(as.numeric(1e-9), min(as.numeric(1), thetah + dthetah))
 update(MEh) <- max(as.numeric(0), MEh + dMEh)

@@ -619,8 +619,8 @@ public:
     state_next[19] = newI_next;
     state_next[21] = newIseed_next;
     real_type vaccine_scale_f = (add_vaccine ? 1 - (shared->vacc_efficacy * shared->vacc_amt / (real_type) shared->N + (1 - shared->vacc_efficacy) * shared->vacc_efficacy2 * shared->vacc_amt2 / (real_type) shared->N) : 1);
-    real_type vf = u2f - dust::math::pow(u1f, 2);
-    real_type vg = u2g - dust::math::pow(u1g, 2);
+    real_type vf = dust::math::min(u2f - dust::math::pow(u1f, 2), 2 * meanfield_delta_si_f);
+    real_type vg = dust::math::min(u2g - dust::math::pow(u1g, 2), 3 * meanfield_delta_si_g);
     real_type MSEf_vacc = MSEf * vaccine_scale_f;
     real_type MSIf_vacc = MSIf * vaccine_scale_f;
     real_type MSSf_vacc = MSSf * dust::math::pow(vaccine_scale_f, 2);
@@ -641,7 +641,7 @@ public:
     real_type MSIg_vacc = MSIg * vaccine_scale_g;
     real_type MSSg_vacc = MSSg * dust::math::pow(vaccine_scale_g, 2);
     real_type transmh = dust::random::poisson<real_type>(rng_state, trateh);
-    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next);
+    real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1);
     real_type tratef = dust::math::max(static_cast<real_type>(0), (MSIf_vacc * shared->N * shared->fp1 * rf));
     real_type u1h = meanfield_delta_si_h;
     state_next[26] = seedrate_next;
@@ -653,16 +653,16 @@ public:
     state_next[24] = cuth + transmh;
     state_next[25] = cuts + transmseed;
     real_type dSh = hup(thetah, shared->vacc_targetted, V1, V2, shared->vacc_efficacy, shared->vacc_efficacy2, theta_vacc_use, shared->hshape, shared->hrate) * dthetah * (1 - veff);
-    real_type delta_si_f = ((transmf == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_f, dust::math::sqrt(vf / (real_type) transmf))));
+    real_type delta_si_f = ((transmf == 0 ? 0 : dust::math::min(meanfield_delta_si_f * 2, dust::math::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, meanfield_delta_si_f, dust::math::sqrt(vf / (real_type) transmf))))));
     real_type dthetaf = - thetaf * transmf / (real_type) (MSf * shared->N * shared->fp1);
     real_type transmg = dust::random::poisson<real_type>(rng_state, trateg);
     state_next[20] = Eseed_next;
     state_next[22] = cutf + transmf;
     state_next[12] = dust::math::max(static_cast<real_type>(static_cast<real_type>(1.0000000000000001e-09)), dust::math::min(static_cast<real_type>(1), thetah + dthetah));
-    real_type vh = u2h - dust::math::pow(u1h, 2);
+    real_type vh = dust::math::min(u2h - dust::math::pow(u1h, 2), 2 * meanfield_delta_si_h);
     real_type dSf = fp(thetaf) * dthetaf;
-    real_type delta_si_g = ((transmg == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_g, dust::math::sqrt(vg / (real_type) transmg))));
-    real_type delta_si_h = ((transmh == 0 ? 0 : dust::random::normal<real_type>(rng_state, meanfield_delta_si_h, dust::math::sqrt(vh / (real_type) transmh))));
+    real_type delta_si_g = ((transmg == 0 ? 0 : dust::math::min(meanfield_delta_si_g * 2, dust::math::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, meanfield_delta_si_g, dust::math::sqrt(vg / (real_type) transmg))))));
+    real_type delta_si_h = ((transmh == 0 ? 0 : dust::math::min(meanfield_delta_si_h * 2, dust::math::max(static_cast<real_type>(0), dust::random::normal<real_type>(rng_state, meanfield_delta_si_h, dust::math::sqrt(vh / (real_type) transmh))))));
     real_type dthetag = - thetag * transmg / (real_type) (MSg * shared->N * shared->gp1);
     real_type newE = transmf + transmg + transmh + transmseed;
     real_type tauf = (transmf / (real_type) (transmf + transmg + transmh + transmseed));
@@ -690,12 +690,12 @@ public:
     state_next[2] = dust::math::max(static_cast<real_type>(0), MEf + dMEf);
     state_next[8] = dust::math::max(static_cast<real_type>(0), MEg + dMEg);
     state_next[13] = dust::math::max(static_cast<real_type>(0), MEh + dMEh);
-    state_next[1] = dust::math::max(static_cast<real_type>(0), MSEf_vacc + dMSEf);
-    state_next[7] = dust::math::max(static_cast<real_type>(0), MSEg_vacc + dMSEg);
-    state_next[4] = dust::math::max(static_cast<real_type>(0), MSIf_vacc + dMSIf);
-    state_next[10] = dust::math::max(static_cast<real_type>(0), MSIg_vacc + dMSIg);
-    state_next[3] = dust::math::max(static_cast<real_type>(0), MSSf_vacc + dMSSf);
-    state_next[9] = dust::math::max(static_cast<real_type>(0), MSSg_vacc + dMSSg);
+    state_next[1] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSEf_vacc + dMSEf));
+    state_next[7] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSEg_vacc + dMSEg));
+    state_next[4] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSIf_vacc + dMSIf));
+    state_next[10] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSIg_vacc + dMSIg));
+    state_next[3] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSSf_vacc + dMSSf));
+    state_next[9] = dust::math::max(static_cast<real_type>(0), dust::math::min(static_cast<real_type>(1), MSSg_vacc + dMSSg));
   }
   real_type compare_data(const real_type * state, const data_type& data, rng_state_type& rng_state) {
     return compare<model>(state, data, internal, shared, rng_state);

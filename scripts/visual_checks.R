@@ -40,6 +40,7 @@ reference_pars <- function() {
 
 
 pars <- reference_pars()
+
 pars$beta0 <- 4  # high R
 pars$beta_sd <- 0 # constant transmission rate
 pars$N <- 1e5 # small N
@@ -49,6 +50,9 @@ pars$seedrate_sd <- 0
 # no vacc 
 pars$vacc_start_day = Inf 
 pars$vacc_start_day2 = Inf
+
+
+
 
 # remove H contacts
 if (F)
@@ -102,7 +106,7 @@ if (F)
 }
 
 # one particle, random seed
-m <- model$new(pars, 1, 1, seed = round(runif(1,1,1e6)), n_threads = 1)
+m <- model$new(pars, 1, 1, seed = 20230301, n_threads = 1) 
 tfin <- 400
 taxis <- seq(1, tfin)
 res <- m$simulate(taxis)

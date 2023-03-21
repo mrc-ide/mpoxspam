@@ -142,11 +142,10 @@ extern "C" SEXP _mpoxspam_dust_cpu_model_set_stochastic_schedule(SEXP ptr, SEXP 
   END_CPP11
 }
 // model.cpp
-void dust_cpu_model_ode_statistics(SEXP ptr);
+SEXP dust_cpu_model_ode_statistics(SEXP ptr);
 extern "C" SEXP _mpoxspam_dust_cpu_model_ode_statistics(SEXP ptr) {
   BEGIN_CPP11
-    dust_cpu_model_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr));
-    return R_NilValue;
+    return cpp11::as_sexp(dust_cpu_model_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // test_support.cpp

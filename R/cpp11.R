@@ -77,7 +77,7 @@ dust_cpu_model_set_stochastic_schedule <- function(ptr, time) {
 }
 
 dust_cpu_model_ode_statistics <- function(ptr) {
-  invisible(.Call(`_mpoxspam_dust_cpu_model_ode_statistics`, ptr))
+  .Call(`_mpoxspam_dust_cpu_model_ode_statistics`, ptr)
 }
 
 test_f <- function(x) {

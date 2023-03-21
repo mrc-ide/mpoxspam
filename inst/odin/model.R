@@ -32,7 +32,6 @@ initial(cumulative_partners) <- 0
 initial( V1 ) <- 0 
 initial( V2 ) <- 0
 
-
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -44,8 +43,8 @@ hp1 <- hp(as.numeric(1), hshape, hrate)
 
 ## We'll need this; strictly this is (step + 1) * dt but we use unit
 ## timesteps here.
-initial(time) <- step + 1
-update(time) <- step + 1
+initial(time) <- step
+update(time) <- time + 1
 
 stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
 # only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day
@@ -89,10 +88,10 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  vacc_doses / (vacc_duration/vacc_freq)
-vacc_amt2 <- vacc_doses2 / (vacc_duration2/vacc_freq) # 2nd dose
-vacc_fin_day <- vacc_start_day + vacc_duration
-vacc_fin_day2 <- vacc_start_day2 + vacc_duration2
+vacc_amt <-  vacc_doses / vacc_duration / vacc_freq
+vacc_amt2 <- vacc_doses2 / vacc_duration2 /vacc_freq # 2nd dose
+vacc_fin_day <- vacc_start_day + vacc_duration - 1
+vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 
 
 add_vaccine <-
@@ -171,6 +170,14 @@ u2g <- (thetag * gpp(thetag) + thetag^2 * gppp(thetag)) / gp(thetag)
 vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
+
+
+# print("tratef: {tratef}")
+# print("trateg: {trateg}")
+# print("seedrate_next: {seedrate_next}")
+# print("vacc_amt: {vacc_amt}")
+# print("V1_next: {V1_next}")
+
 
 transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
 
@@ -329,3 +336,5 @@ update(V2) <- V2_next
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
+
+print("time: {time; .0f} veff: {veff} trateh {trateh}")

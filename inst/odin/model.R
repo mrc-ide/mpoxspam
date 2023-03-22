@@ -171,14 +171,6 @@ vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
-
-# print("tratef: {tratef}")
-# print("trateg: {trateg}")
-# print("seedrate_next: {seedrate_next}")
-# print("vacc_amt: {vacc_amt}")
-# print("V1_next: {V1_next}")
-
-
 transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
 
 
@@ -337,4 +329,5 @@ update(V2) <- V2_next
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
 
+## debugging
 print("time: {time; .0f} veff: {veff} trateh {trateh}")

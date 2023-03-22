@@ -960,8 +960,8 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->initial_beta = shared->beta0;
   shared->initial_dseedrate = shared->dseedrate0;
   shared->initial_seedrate = shared->seedrate0;
-  shared->vacc_amt = shared->vacc_doses / (real_type) shared->vacc_duration / (real_type) shared->vacc_freq;
-  shared->vacc_amt2 = shared->vacc_doses2 / (real_type) shared->vacc_duration2 / (real_type) shared->vacc_freq;
+  shared->vacc_amt = dust::math::min(shared->vacc_doses, shared->N) / (real_type) shared->vacc_duration / (real_type) shared->vacc_freq;
+  shared->vacc_amt2 = dust::math::min(shared->vacc_doses2, shared->N) / (real_type) shared->vacc_duration2 / (real_type) shared->vacc_freq;
   shared->vacc_fin_day = shared->vacc_start_day + shared->vacc_duration - 1;
   shared->vacc_fin_day2 = shared->vacc_start_day2 + shared->vacc_duration2 - 1;
   shared->xinit = shared->i0 / (real_type) shared->N;

@@ -88,8 +88,8 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  vacc_doses / vacc_duration / vacc_freq
-vacc_amt2 <- vacc_doses2 / vacc_duration2 /vacc_freq # 2nd dose
+vacc_amt <-  min(vacc_doses, N) / vacc_duration / vacc_freq
+vacc_amt2 <- min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
 vacc_fin_day <- vacc_start_day + vacc_duration - 1
 vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 

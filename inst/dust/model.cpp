@@ -524,7 +524,7 @@ public:
     real_type reset_weekly = fmodr<real_type>(step, 7) == 0;
     real_type u2f = (thetaf * fpp(thetaf) + dust::math::pow(thetaf, 2) * fppp(thetaf)) / (real_type) fp(thetaf);
     real_type u2g = (thetag * gpp(thetag) + dust::math::pow(thetag, 2) * gppp(thetag)) / (real_type) gp(thetag);
-    state_next[33] = time + 1;
+    state_next[33] = step + 1;
     real_type veff = (V1 > 0 ? V1 * ((V2 / (real_type) V1) * (1 - shared->vacc_efficacy) * shared->vacc_efficacy2 + (1 - V2 / (real_type) V1) * shared->vacc_efficacy) : 0);
     real_type MSf = thetaf * (1 - veff) * fp(thetaf) / (real_type) shared->fp1;
     real_type MSg = thetag * (1 - veff) * gp(thetag) / (real_type) shared->gp1;

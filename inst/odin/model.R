@@ -44,7 +44,7 @@ hp1 <- hp(as.numeric(1), hshape, hrate)
 ## We'll need this; strictly this is (step + 1) * dt but we use unit
 ## timesteps here.
 initial(time) <- step
-update(time) <- time + 1
+update(time) <- step + 1
 
 stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
 # only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day

@@ -184,6 +184,7 @@ test_that("user input fixed beta works", {
   expect_equal(res_det[, 1, ], res[, 1, ])
   expect_equal(res_det[, -1, 1], res[, -1, 1])
   expect_false(all(res_det[, -1, -1] == res[, -1, -1]))
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0)
 
 })
 
@@ -203,6 +204,7 @@ test_that("vaccination works", {
   rownames(res_novax) <- names(m$info()$index)
   expect_true(all(res_novax["V1", , ] == 0))
   expect_true(all(res_novax["V2", , ] == 0))
+  expect_equal(sum(colSums(res_novax[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   # 100% vaccination on day 1 with 99% efficacy
   pars$vacc_doses <- pars$vacc_doses2 <- pars$N
@@ -220,6 +222,7 @@ test_that("vaccination works", {
   expect_true(all(res["V2", , 1:2] == 0))
   expect_true(all(res["V2", , 3] == 0.5))
   expect_true(all(res["V2", , -(1:3)] == 1))
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   ## random vaccination
   # pars$vacc_targetted <- 0
@@ -228,6 +231,7 @@ test_that("vaccination works", {
   rownames(res_random) <- names(m$info()$index)
   expect_true(all(res_random["V1", ,-1] == 1))
   expect_true(all(res_random["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(colSums(res_random[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   ## perfectly targeted vaccination
   pars$vacc_targetted <- 1
@@ -236,6 +240,7 @@ test_that("vaccination works", {
   rownames(res_perfect) <- names(m$info()$index)
   expect_true(all(res_perfect["V1", ,-1] == 1))
   expect_true(all(res_perfect["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(colSums(res_perfect[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
 
   # targetting has no effect when everyone is vaccinated
   expect_equal(res_perfect, res_random)
@@ -248,6 +253,7 @@ test_that("vaccination works", {
   rownames(res_ve0) <- names(m$info()$index)
   expect_true(all(res_ve0["V1", ,-1] == 1))
   expect_true(all(res_ve0["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(colSums(res_ve0[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   # Check we get the same result when efficacy is 0 vs when there is no vaccination
   expect_equal(res_novax["newI", ,], res_ve0["newI", , ])
@@ -259,6 +265,7 @@ test_that("vaccination works", {
   res_V50k <- m$simulate(t)
   ## vaccine efficacy does not affect results
   rownames(res_V50k) <- names(m$info()$index)
+  expect_equal(sum(colSums(res_V50k[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   pars$vacc_targetted <- 1
   m <- model$new(pars, time = 1, n_par, seed = 1)
@@ -289,4 +296,39 @@ test_that("vaccination works", {
   # m <- model_debug$new(pars, time = 1, n_par, seed = 1)
   # res <- m$simulate(t)
 
+})
+
+
+test_that("vaccination works after large epidemic",{
+  pars <- reference_pars()
+  pars$beta0 <- 20
+  pars$seedrate0 <- 2
+  n_par <- 3
+  t <- seq(1, 200)
+  
+  # No vaccination when doses = 0
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
+  m <- model$new(pars, 1, n_par, seed = 1)
+  res <- m$simulate(t)
+  rownames(res) <- names(m$info()$index)
+  
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
+  
+
+  par(mfrow = c(1, 2), mar = c(3, 3, 1, 1), mgp = c(1.5, 0.5, 0))
+  matplot(t(res["R", , ]), type = "l", lty = 1, col = 1, ylab = "S, I, R")
+  matlines(t(res["E", , ]), lty = 1, col = 2)
+  matlines(t(res["I", , ]), lty = 1, col = 3)
+  matlines(t(res["S", , ]), lty = 1, col = 4)
+  matlines(t(res["V1", , ]), lty = 1, col = 5)
+  matlines(t(res["V2", , ]), lty = 1, col = 5)
+  legend("bottomright", legend = c("S", "E", "I", "R", "V1+V2"), fill = 1:5)
+
+  matplot(t(colSums(res[c("S", "E", "I", "R"), , ])), type = "l", lty = 1,
+          col = 1, ylim = c(0, 15e5), ylab = "S+E+I+R")
+  matlines(t(res["E", , ]), lty = 1, col = 2)
+  matlines(t(res["I", , ]), lty = 1, col = 3)
+  
+  matplot(t(pars$N - colSums(res[c("S", "E", "I"), , ])), type = "l", lty = 1, col = 1)
 })

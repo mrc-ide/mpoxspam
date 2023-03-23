@@ -92,6 +92,10 @@ test_h <- function(x, hs, hr) {
   .Call(`_mpoxspam_test_h`, x, hs, hr)
 }
 
+test_hu <- function(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr) {
+  .Call(`_mpoxspam_test_hu`, x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr)
+}
+
 test_update_theta_vacc4_2 <- function(theta_vacc, amt_targetted, hshape, hrate) {
   .Call(`_mpoxspam_test_update_theta_vacc4_2`, theta_vacc, amt_targetted, hshape, hrate)
 }

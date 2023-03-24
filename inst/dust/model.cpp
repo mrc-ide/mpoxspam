@@ -38,9 +38,6 @@ constexpr real_type inf = std::numeric_limits<real_type>::infinity();
 template <typename real_type>
 constexpr real_type eps = std::numeric_limits<real_type>::epsilon();
 
-template <typename real_type>
-constexpr real_type min_thetav = 6.05545445239334e-06; // eps ^ 1/3
-
 // [[odin.dust::register]]
 template <typename real_type>
 __host__ __device__
@@ -149,7 +146,7 @@ template <typename real_type>
 __host__ __device__
 real_type hu(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type theta = dust::math::max(min_thetav<real_type>, thetav);
+  const real_type theta = thetav;
   //~ return ( h(x,hs,hr) - hv( x,vr,V1,V2,v1eff,v2eff,theta,hs,hr ) )/norm;
   const real_type num = h(theta*x,hs,hr) - vr*V1*v1eff*h(theta*x,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(theta*x,hs,hr) ;
   const real_type den = h(theta,hs,hr) - vr*V1*v1eff*h(theta,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(theta,hs,hr) ;
@@ -163,7 +160,8 @@ template <typename real_type>
 __host__ __device__
 real_type hup(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type theta = dust::math::max(min_thetav<real_type>, thetav);
+  const real_type min_thetav = eps<real_type>; // eps ^ 1/2
+  const real_type theta = dust::math::max(min_thetav, thetav);
   //~ return hp(x,hs,hr) - hvp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
   const real_type num = theta*hp(theta*x,hs,hr) - theta*vr*V1*v1eff*hp(theta*x,hs,hr) - theta*vr*V2*v2eff*(1-v1eff)*hp(theta*x,hs,hr) ;
   const real_type den = h(theta,hs,hr) - vr*V1*v1eff*h(theta,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(theta,hs,hr) ;
@@ -175,7 +173,8 @@ template <typename real_type>
 __host__ __device__
 real_type hupp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
-  const real_type theta = dust::math::max(min_thetav<real_type>, thetav);
+  const real_type min_thetav = std::sqrt(eps<real_type>); // eps ^ 1/2
+  const real_type theta = dust::math::max(min_thetav, thetav);
   //~ return hpp(x,hs,hr) - hvpp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
   const real_type num = theta*theta*hpp(theta*x,hs,hr) - theta*theta*vr*V1*v1eff*hpp(theta*x,hs,hr) - theta*theta*vr*V2*v2eff*(1-v1eff)*hpp(theta*x,hs,hr) ;
   const real_type den = h(theta,hs,hr) - vr*V1*v1eff*h(theta,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(theta,hs,hr) ;
@@ -188,7 +187,8 @@ __host__ __device__
 real_type huppp(real_type x, real_type vr, real_type V1, real_type V2, real_type v1eff, real_type v2eff, real_type thetav, real_type hs, real_type hr) {
   static_assert(std::is_floating_point<real_type>::value, "use with integral type");
   //~ return hppp(x,hs,hr) - hvppp( x,vr,V1,V2,v1eff,v2eff,thetav,hs,hr );
-  const real_type theta = dust::math::max(min_thetav<real_type>, thetav);
+  const real_type min_thetav = std::pow(eps<real_type>, 1/3.); // eps ^ 1/3
+  const real_type theta = dust::math::max(min_thetav, thetav);
   const real_type num = theta*theta*theta*hppp(theta*x,hs,hr) - theta*theta*theta*vr*V1*v1eff*hppp(theta*x,hs,hr) - theta*theta*theta*vr*V2*v2eff*(1-v1eff)*hppp(theta*x,hs,hr) ;
   const real_type den = h(theta,hs,hr) - vr*V1*v1eff*h(theta,hs,hr) - vr*V2*v2eff*(1-v1eff)*h(theta,hs,hr) ;
   return num / den;

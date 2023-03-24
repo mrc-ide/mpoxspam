@@ -141,10 +141,18 @@ test_that("hu* functions behave with very small thetav", {
   thetav <- 4.0732983338996529e-157
   thetav <- exp(seq(log(1e-2), log(1e-150), length.out = 100))
   y <- sapply(thetav, test_hu_theta)
-  plot(thetav, y[3, ], log = "x")
+  
+  par(mfrow = c(2, 2))
+  for (i in 1:4) {
+  plot(thetav, y[i, ], log = "x", type = "l",
+       ylab = sprintf("hu%s(thetav)", c("", "p", "pp", "ppp")[i]))
+  }
 
   eps <- .Machine$double.eps
-  expect_equal(test_hu_theta(eps ^ (1/3)), test_hu_theta(eps))
+  expect_equal(test_hu_theta(eps ^ (1/3)) == test_hu_theta(eps), c(FALSE, FALSE, FALSE, TRUE))
+  expect_equal(test_hu_theta(eps ^ (1/2)) == test_hu_theta(eps), c(FALSE, FALSE, TRUE, TRUE))
+  expect_equal(test_hu_theta(eps* 1.1) == test_hu_theta(eps), c(FALSE, FALSE, TRUE, TRUE))
+  expect_equal(test_hu_theta(eps) == test_hu_theta(eps), c(TRUE, TRUE, TRUE, TRUE))
   expect_false(any(test_hu_theta(eps ^ (1/3) * 2) == test_hu_theta(eps ^ (1/3))))
 
 })

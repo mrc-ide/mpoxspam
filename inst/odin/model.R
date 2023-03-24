@@ -32,6 +32,8 @@ initial(cumulative_partners) <- 0
 initial( V1 ) <- 0 
 initial( V2 ) <- 0
 
+## debugging
+print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -329,5 +331,4 @@ update(V2) <- V2_next
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
 
-## debugging
-print("time: {time; .0f} veff: {veff} trateh {trateh}")
+

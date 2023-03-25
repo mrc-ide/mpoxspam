@@ -6,13 +6,6 @@
 #include <R_ext/Visibility.h>
 
 // model.cpp
-cpp11::sexp dust_model_capabilities();
-extern "C" SEXP _mpoxspam_dust_model_capabilities() {
-  BEGIN_CPP11
-    return cpp11::as_sexp(dust_model_capabilities());
-  END_CPP11
-}
-// model.cpp
 cpp11::sexp dust_model_gpu_info();
 extern "C" SEXP _mpoxspam_dust_model_gpu_info() {
   BEGIN_CPP11
@@ -24,6 +17,13 @@ SEXP dust_cpu_model_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_tim
 extern "C" SEXP _mpoxspam_dust_cpu_model_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
     return cpp11::as_sexp(dust_cpu_model_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
+  END_CPP11
+}
+// model.cpp
+cpp11::sexp dust_cpu_model_capabilities();
+extern "C" SEXP _mpoxspam_dust_cpu_model_capabilities() {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_model_capabilities());
   END_CPP11
 }
 // model.cpp
@@ -142,11 +142,10 @@ extern "C" SEXP _mpoxspam_dust_cpu_model_set_stochastic_schedule(SEXP ptr, SEXP 
   END_CPP11
 }
 // model.cpp
-void dust_cpu_model_ode_statistics(SEXP ptr);
+SEXP dust_cpu_model_ode_statistics(SEXP ptr);
 extern "C" SEXP _mpoxspam_dust_cpu_model_ode_statistics(SEXP ptr) {
   BEGIN_CPP11
-    dust_cpu_model_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr));
-    return R_NilValue;
+    return cpp11::as_sexp(dust_cpu_model_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // test_support.cpp
@@ -168,6 +167,13 @@ cpp11::doubles test_h(double x, double hs, double hr);
 extern "C" SEXP _mpoxspam_test_h(SEXP x, SEXP hs, SEXP hr) {
   BEGIN_CPP11
     return cpp11::as_sexp(test_h(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(hs), cpp11::as_cpp<cpp11::decay_t<double>>(hr)));
+  END_CPP11
+}
+// test_support.cpp
+cpp11::doubles test_hu(double x, double vr, double V1, double V2, double v1eff, double v2eff, double thetav, double hs, double hr);
+extern "C" SEXP _mpoxspam_test_hu(SEXP x, SEXP vr, SEXP V1, SEXP V2, SEXP v1eff, SEXP v2eff, SEXP thetav, SEXP hs, SEXP hr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(test_hu(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(vr), cpp11::as_cpp<cpp11::decay_t<double>>(V1), cpp11::as_cpp<cpp11::decay_t<double>>(V2), cpp11::as_cpp<cpp11::decay_t<double>>(v1eff), cpp11::as_cpp<cpp11::decay_t<double>>(v2eff), cpp11::as_cpp<cpp11::decay_t<double>>(thetav), cpp11::as_cpp<cpp11::decay_t<double>>(hs), cpp11::as_cpp<cpp11::decay_t<double>>(hr)));
   END_CPP11
 }
 // test_support.cpp
@@ -202,6 +208,7 @@ extern "C" SEXP _mpoxspam_test_ll_betabinom(SEXP data_a, SEXP data_b, SEXP model
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
     {"_mpoxspam_dust_cpu_model_alloc",                   (DL_FUNC) &_mpoxspam_dust_cpu_model_alloc,                   9},
+    {"_mpoxspam_dust_cpu_model_capabilities",            (DL_FUNC) &_mpoxspam_dust_cpu_model_capabilities,            0},
     {"_mpoxspam_dust_cpu_model_compare_data",            (DL_FUNC) &_mpoxspam_dust_cpu_model_compare_data,            1},
     {"_mpoxspam_dust_cpu_model_filter",                  (DL_FUNC) &_mpoxspam_dust_cpu_model_filter,                  5},
     {"_mpoxspam_dust_cpu_model_n_state",                 (DL_FUNC) &_mpoxspam_dust_cpu_model_n_state,                 1},
@@ -219,11 +226,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mpoxspam_dust_cpu_model_state",                   (DL_FUNC) &_mpoxspam_dust_cpu_model_state,                   2},
     {"_mpoxspam_dust_cpu_model_time",                    (DL_FUNC) &_mpoxspam_dust_cpu_model_time,                    1},
     {"_mpoxspam_dust_cpu_model_update_state",            (DL_FUNC) &_mpoxspam_dust_cpu_model_update_state,            7},
-    {"_mpoxspam_dust_model_capabilities",                (DL_FUNC) &_mpoxspam_dust_model_capabilities,                0},
     {"_mpoxspam_dust_model_gpu_info",                    (DL_FUNC) &_mpoxspam_dust_model_gpu_info,                    0},
     {"_mpoxspam_test_f",                                 (DL_FUNC) &_mpoxspam_test_f,                                 1},
     {"_mpoxspam_test_g",                                 (DL_FUNC) &_mpoxspam_test_g,                                 1},
     {"_mpoxspam_test_h",                                 (DL_FUNC) &_mpoxspam_test_h,                                 3},
+    {"_mpoxspam_test_hu",                                (DL_FUNC) &_mpoxspam_test_hu,                                9},
     {"_mpoxspam_test_ll_betabinom",                      (DL_FUNC) &_mpoxspam_test_ll_betabinom,                      7},
     {"_mpoxspam_test_ll_nbinom",                         (DL_FUNC) &_mpoxspam_test_ll_nbinom,                         5},
     {"_mpoxspam_test_update_theta_vacc4_2",              (DL_FUNC) &_mpoxspam_test_update_theta_vacc4_2,              4},

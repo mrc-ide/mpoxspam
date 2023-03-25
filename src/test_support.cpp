@@ -19,6 +19,14 @@ cpp11::doubles test_h(double x, double hs, double hr) {
 }
 
 [[cpp11::register]]
+cpp11::doubles test_hu(double x, double vr, double V1, double V2, double v1eff, double v2eff, double thetav, double hs, double hr) {
+  return cpp11::writable::doubles({hu(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr),
+                                   hup(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr),
+                                   hupp(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr),
+                                   huppp(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr)});
+}
+
+[[cpp11::register]]
 double test_update_theta_vacc4_2(double theta_vacc, double amt_targetted, double hshape, double hrate) {
   return update_theta_vacc4_2(theta_vacc, amt_targetted, hshape, hrate);
 }

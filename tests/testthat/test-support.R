@@ -123,3 +123,24 @@ test_that("compiled ll_betabinom agrees", {
   expect_equal(ll_betabinom(2, 4, 89, 129, 0.5, Inf),
                test_ll_betabinom(2, 4, 89, 129, 0.5, Inf, rng))
 })
+
+
+test_that("hu* functions behave with very small thetav", {
+  skip("finish writing me please")
+  test_hu_theta <- function(thetav) {
+    x <- 2.7582643254561925e-05
+    vr <- 0.80000000000000004
+    V1 <- 0.30823038793678742
+    V2 <- 0.0080929608005416483
+    v1eff <- 0.89000000000000001
+    v2eff <- 0.94999999999999996
+    hs <- 0.066370290188591391
+    hr <- 3.3057509920856094
+    test_hu(x, vr, V1, V2, v1eff, v2eff, thetav, hs, hr)
+  }
+  thetav <- 4.0732983338996529e-157
+  thetav <- exp(seq(log(1e-2), log(1e-150), length.out = 100))
+  y <- sapply(thetav, test_hu_theta)
+
+  test_hu_theta(1e-6)
+})

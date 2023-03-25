@@ -32,7 +32,6 @@ initial(cumulative_partners) <- 0
 initial( V1 ) <- 0 
 initial( V2 ) <- 0
 
-
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -44,7 +43,7 @@ hp1 <- hp(as.numeric(1), hshape, hrate)
 
 ## We'll need this; strictly this is (step + 1) * dt but we use unit
 ## timesteps here.
-initial(time) <- step + 1
+initial(time) <- step
 update(time) <- step + 1
 
 stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
@@ -89,10 +88,10 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  vacc_doses / (vacc_duration/vacc_freq)
-vacc_amt2 <- vacc_doses2 / (vacc_duration2/vacc_freq) # 2nd dose
-vacc_fin_day <- vacc_start_day + vacc_duration
-vacc_fin_day2 <- vacc_start_day2 + vacc_duration2
+vacc_amt <-  min(vacc_doses, N) / vacc_duration / vacc_freq
+vacc_amt2 <- min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
+vacc_fin_day <- vacc_start_day + vacc_duration - 1
+vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 
 
 add_vaccine <-
@@ -329,3 +328,6 @@ update(V2) <- V2_next
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
+
+## debugging
+print("time: {time; .0f} veff: {veff} trateh {trateh}")

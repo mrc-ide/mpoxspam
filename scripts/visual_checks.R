@@ -41,7 +41,7 @@ reference_pars <- function() {
 
 pars <- reference_pars()
 
-pars$beta0 <- 4  # high R
+pars$beta0 <- 12  # high R 4
 pars$beta_sd <- 0 # constant transmission rate
 pars$N <- 1e5 # small N
 # initial burst of seeding only :
@@ -52,6 +52,9 @@ pars$vacc_start_day = Inf
 pars$vacc_start_day2 = Inf
 
 
+pars$beta_step <- pars$beta0
+pars$dseedrate_step <- pars$dseedrate0
+pars$stochastic_behaviour <- 1
 
 
 # remove H contacts
@@ -106,7 +109,10 @@ if (F)
 }
 
 # one particle, random seed
-m <- model$new(pars, 1, 1, seed = 20230301, n_threads = 1) 
+m <- model$new(pars, 1, 1
+#~ , seed = 20230301
+, n_threads = 1) 
+
 tfin <- 400
 taxis <- seq(1, tfin)
 res <- m$simulate(taxis)

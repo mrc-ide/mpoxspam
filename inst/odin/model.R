@@ -107,25 +107,27 @@ add_vaccine2 <-
 
 
 V1_next <- if (add_vaccine) V1 + vacc_amt / N else V1 
-V2_next <- if ( add_vaccine2 ) V2 + vacc_amt2 / N else V2
+V2_next <- if (add_vaccine2) V2 + vacc_amt2 / N else V2
 # effective proportion of population protected by vacc
 veff <- if (V1>0) V1*( (V2/V1)*(1-vacc_efficacy)*vacc_efficacy2 + (1-V2/V1)*vacc_efficacy )  else 0
-#~ S_vacc_use <- if (add_vaccine) S_vacc * (1 - amt_random - amt_targetted) else S_vacc
+veff_targetted <- veff * vacc_targetted 
+veff_untargetted <- veff * (1-vacc_targetted)
 
-theta_vacc_use <- if (add_vaccine) update_theta_vacc4_3(veff, hshape, hrate) else theta_vacc
+theta_vacc_use <- if (add_vaccine) update_theta_vacc4_3(veff_targetted, hshape, hrate) else theta_vacc
 
-vaccine_scale_f <- if(add_vaccine) 1-(vacc_efficacy*vacc_amt/N + (1-vacc_efficacy)*vacc_efficacy2*vacc_amt2/N) else 1
-vaccine_scale_g <- vaccine_scale_f
+vacc_rescale <- if(add_vaccine) 1-(vacc_efficacy*vacc_amt/N + (1-vacc_efficacy)*vacc_efficacy2*vacc_amt2/N) else 1
 
-MSEf_vacc <- MSEf * vaccine_scale_f
-MSSf_vacc <- MSSf * vaccine_scale_f^2
-MSIf_vacc <- MSIf * vaccine_scale_f
-MSEg_vacc <- MSEg * vaccine_scale_g
-MSSg_vacc <- MSSg * vaccine_scale_g^2
-MSIg_vacc <- MSIg * vaccine_scale_g
+MSEf_ <- MSEf * vacc_rescale
+MSSf_ <- MSSf * vacc_rescale^2
+MSIf_ <- MSIf * vacc_rescale
+MSEg_ <- MSEg * vacc_rescale
+MSSg_ <- MSSg * vacc_rescale^2
+MSIg_ <- MSIg * vacc_rescale
 
 MSf <- thetaf * (1-veff) * fp(thetaf) / fp1
 MSg <- thetag * (1-veff) * gp(thetag) / gp1
+MSh <- (1-veff_untargetted) * thetah*theta_vacc_use* hp(thetah*theta_vacc_use, hshape, hrate) / hp1
+
 
 ## used if stochastic_behaviour == 0
 beta_det <- if (as.integer(step) >= length(beta_step))
@@ -148,11 +150,11 @@ rg <- beta_next * 1 / 7
 
 
 
-## become poorly defined and go NA or non-finite
-tratef <- max(as.numeric(0), ( MSIf_vacc * N * fp1 * rf) )
+tratef <- max(as.numeric(0), ( MSIf_ * N * fp1 * rf) )
 transmf <- rpois(tratef)
 dthetaf <- -thetaf * transmf / (MSf * N * fp1)
-dSf <- fp(thetaf) * dthetaf # note prop to transm
+#~ dSf <- fp(thetaf) * dthetaf # note prop to transm
+dSf <- -transmf / N
 meanfield_delta_si_f <- (thetaf * fpp(thetaf) / fp(thetaf))
 u1f <- meanfield_delta_si_f
 u2f <- (thetaf * fpp(thetaf) + thetaf^2 * fppp(thetaf)) / fp(thetaf)
@@ -160,10 +162,11 @@ vf <- min(  u2f - u1f^2, 2*meanfield_delta_si_f )
 delta_si_f <- (if (transmf == 0) 0
                else min(meanfield_delta_si_f*2,max(as.numeric(0),rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))))
 
-trateg <- max(as.numeric(0), MSIg_vacc * N * gp1 * rg)
+trateg <- max(as.numeric(0), MSIg_ * N * gp1 * rg)
 transmg <- rpois(trateg)
 dthetag <- -thetag * transmg / (MSg * N * gp1)
-dSg <- gp(thetag) * dthetag # note prop to transm
+#~ dSg <- gp(thetag) * dthetag # note prop to transm
+dSg <- -transmg / N
 meanfield_delta_si_g <- (thetag * gpp(thetag) / gp(thetag))
 u1g <- meanfield_delta_si_g
 u2g <- (thetag * gpp(thetag) + thetag^2 * gppp(thetag)) / gp(thetag)
@@ -172,18 +175,13 @@ delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
 transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
-
-
-trateh <- max(as.numeric(0), beta_next * MIh * N * hp1 * (S/N)*(1-V1*vacc_efficacy+V2*(1-vacc_efficacy)*vacc_efficacy2) )
+trateh <- N * MIh * MSh * hp1
 transmh <- rpois(trateh) 
 
-
-
-dot_thetah <- thetah * theta_vacc_use
-
-MSh <- thetah * hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hp1 # only unvacc
+dot_thetah <- thetah * theta_vacc_use  
 dthetah <- -thetah * (transmh + transmseed) / (N * hp1 * MSh ) # seeding happens here
-dSh <- hup(thetah,  vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2 , theta_vacc_use, hshape, hrate) * dthetah *(1-veff) # note prop to transm, (1-veff) added because hu(x) generates normalised dist among unvacc
+#~ dSh <- hup(thetah,  vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2 , theta_vacc_use, hshape, hrate) * dthetah *(1-veff) # note prop to transm, (1-veff) added because hu(x) generates normalised dist among unvacc
+dSh <- -(transmh + transmseed)/N
 meanfield_delta_si_h <- (1 + thetah * hupp(thetah, vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) /
                            hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate)) # note + 1 for mfsh (vs f & g)
 u1h <- meanfield_delta_si_h
@@ -218,44 +216,44 @@ cumulative_partners_next <-
     tauh * meanfield_delta_si_h
   )
 
-dMSEf <- -gamma1 * MSEf +
+dMSEf <- -gamma1 * MSEf_ +
   2 * etaf * MSf * MEf -
-  etaf * MSEf +
-  (-dSf) * (delta_si_f / fp1) * (MSSf_vacc / MSf) +
-  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_vacc / MSf) +
-  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_vacc / MSf)
-dMSIf <- -rf * MSIf -
-  gamma1 * MSIf +
-  gamma0 * MSEf +
+  etaf * MSEf_ +
+  (-dSf) * (delta_si_f / fp1) * (MSSf_ / MSf) +
+  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf) +
+  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf)
+dMSIf <- -rf * MSIf_ -
+  gamma1 * MSIf_ +
+  gamma0 * MSEf_ +
   2 * etaf * MSf * MIf -
-  etaf * MSIf +
-  (-dSf) * (delta_si_f / fp1) * (-MSIf_vacc / MSf) +
-  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_vacc / MSf) +
-  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_vacc / MSf)
+  etaf * MSIf_ +
+  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) +
+  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) +
+  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
 
-dMSEg <- -gamma0 * MSEg +
+dMSEg <- -gamma0 * MSEg_ +
   2 * etag * MSg * MEg -
-  etag * MSEg +
-  (-dSg) * (delta_si_g / gp1) * (MSSg_vacc / MSg) +
-  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_vacc / MSg) +
-  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_vacc / MSg)
-dMSIg <- -rg * MSIg -
-  gamma1 * MSIg +
-  gamma0 * MSEg +
+  etag * MSEg_ +
+  (-dSg) * (delta_si_g / gp1) * (MSSg_ / MSg) +
+  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg) +
+  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg)
+dMSIg <- -rg * MSIg_ -
+  gamma1 * MSIg_ +
+  gamma0 * MSEg_ +
   2 * etag * MSg * MIg -
-  etag * MSIg +
-  (-dSg) * (delta_si_g / gp1) * (-MSIg_vacc / MSg) +
-  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_vacc / MSg) +
-  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_vacc / MSg)
+  etag * MSIg_ +
+  (-dSg) * (delta_si_g / gp1) * (-MSIg_ / MSg) +
+  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg) +
+  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg)
 
 dMSSf <- 1 * etaf * MSf^2 - # 2 or 1?
-                          etaf * MSSf_vacc -
-                          (-dSf) * (delta_si_f / fp1) * MSSf_vacc / MSf - # 2 or 1 ?
-                          ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_vacc / MSf
+                          etaf * MSSf_ -
+                          (-dSf) * (delta_si_f / fp1) * MSSf_ / MSf - # 2 or 1 ?
+                          ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_ / MSf
 dMSSg <- 1 * etag * MSg^2 - # 2 or 1?
-                          etag * MSSg_vacc -
-                          (-dSg) * (delta_si_g / gp1) * MSSg_vacc / MSg - # 2 or 1 ?
-                          ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_vacc / MSg
+                          etag * MSSg_ -
+                          (-dSg) * (delta_si_g / gp1) * MSSg_ / MSg - # 2 or 1 ?
+                          ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_ / MSg
 
 dMEf <- -gamma0 * MEf +
   (-dSf) * (delta_si_f / fp1) +
@@ -292,16 +290,16 @@ Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
 
 ## Need as.numeric here to get a good cast to the correct real type
 update(thetaf) <- max(as.numeric(1e-9), min(as.numeric(1), thetaf + dthetaf))
-update(MSEf) <- max(as.numeric(0), min(as.numeric(1), MSEf_vacc + dMSEf) )
+update(MSEf) <- max(as.numeric(0), min(as.numeric(1), MSEf_ + dMSEf) )
 update(MEf) <- max(as.numeric(0), MEf + dMEf)
-update(MSSf) <- max(as.numeric(0), min( as.numeric(1), MSSf_vacc + dMSSf) )
-update(MSIf) <- max(as.numeric(0), min( as.numeric(1) ,  MSIf_vacc + dMSIf) )
+update(MSSf) <- max(as.numeric(0), min( as.numeric(1), MSSf_ + dMSSf) )
+update(MSIf) <- max(as.numeric(0), min( as.numeric(1) ,  MSIf_ + dMSIf) )
 update(MIf) <- max(as.numeric(0), MIf + dMIf)
 update(thetag) <- max(as.numeric(1e-9), min(as.numeric(1), thetag + dthetag))
-update(MSEg) <- max(as.numeric(0), min( as.numeric(1), MSEg_vacc + dMSEg))
+update(MSEg) <- max(as.numeric(0), min( as.numeric(1), MSEg_ + dMSEg))
 update(MEg) <- max(as.numeric(0), MEg + dMEg)
-update(MSSg) <- max(as.numeric(0), min( as.numeric(1), MSSg_vacc + dMSSg) )
-update(MSIg) <- max(as.numeric(0), min( as.numeric(1), MSIg_vacc + dMSIg) )
+update(MSSg) <- max(as.numeric(0), min( as.numeric(1), MSSg_ + dMSSg) )
+update(MSIg) <- max(as.numeric(0), min( as.numeric(1), MSIg_ + dMSIg) )
 update(MIg) <- max(as.numeric(0), MIg + dMIg)
 update(thetah) <- max(as.numeric(1e-9), min(as.numeric(1), thetah + dthetah))
 update(MEh) <- max(as.numeric(0), MEh + dMEh)

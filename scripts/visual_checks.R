@@ -2,7 +2,7 @@ library( mpoxspam )
 
 
 reference_pars <- function() {
-  list(beta0 = 1.97848857973857,
+  list(beta0 = 12,
        beta_freq = 7,
        beta_sd = 0.15,
        gamma0 = 0.125,
@@ -35,13 +35,14 @@ reference_pars <- function() {
        kappa_cases = 1,
        rho_travel = 0.5,
        compare_cases = "binom",
-       compare_travel = "binom")
+       compare_travel = "binom", 
+       dt = .1 ) 
 }
 
 
 pars <- reference_pars()
 
-pars$beta0 <- 12  # high R 4
+pars$beta0 <- 16 #12  # high R 4
 pars$beta_sd <- 0 # constant transmission rate
 pars$N <- 1e5 # small N
 # initial burst of seeding only :
@@ -113,7 +114,7 @@ m <- model$new(pars, 1, 1
 #~ , seed = 20230301
 , n_threads = 1) 
 
-tfin <- 400
+tfin <- 400 / 0.1 
 taxis <- seq(1, tfin)
 res <- m$simulate(taxis)
 rownames(res) <- names(m$info()$index)
@@ -128,7 +129,16 @@ res['cutg',,] |> plot()
 res['cuth',,] |> plot()
 res['cuts',,] |> plot()
 res['cumulative_partners',,] |> plot()
+
 #~ res['seedrate',,] |> plot()
 #~ res['dseedrate',,] |> plot()
 
-#~ model$update_state( pars, state0, time = 1 )
+
+#~ X11()
+#~ par( mfrow = c(3, 2 ))
+#~ res['MSEf',,] |> plot() 
+#~ res['MSEg',,] |> plot() 
+#~ res['MEh',,] |> plot() 
+#~ res['MSIf',,] |> plot() 
+#~ res['MSIg',,] |> plot() 
+#~ res['MIh',,] |> plot() 

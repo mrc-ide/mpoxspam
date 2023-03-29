@@ -41,17 +41,19 @@ gp1 <- gp(as.numeric(1))
 hp1 <- hp(as.numeric(1), hshape, hrate)
 
 
-## We'll need this; strictly this is (step + 1) * dt but we use unit
-## timesteps here.
-initial(time) <- step
-update(time) <- step + 1
-
 stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
 # only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day
 beta_step[] <- user()
 dseedrate_step[] <- user()
 dim(beta_step) <- user()
 dim(dseedrate_step) <- user()
+dt <- user(.1)
+
+## We'll need this; strictly this is (step + 1) * dt but we use unit
+## timesteps here.
+initial(time) <- step
+update(time) <- (step + 1)*dt
+
 
 beta0 <- user(2.25)
 beta_freq <- user(7)
@@ -88,8 +90,8 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  min(vacc_doses, N) / vacc_duration / vacc_freq
-vacc_amt2 <- min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
+vacc_amt <-  dt * min(vacc_doses, N) / vacc_duration / vacc_freq
+vacc_amt2 <- dt * min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
 vacc_fin_day <- vacc_start_day + vacc_duration - 1
 vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 
@@ -140,7 +142,7 @@ dseedrate_rw <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else d
 beta_rw <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
 
 dseedrate_next <- if (stochastic_behaviour) dseedrate_rw else dseedrate_det
-seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next)
+seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next*dt)
 beta_next <- if (stochastic_behaviour) beta_rw else beta_det
 
 ## factor 1.5 / 7 is act rate per day; factor 1.5 b/c more contacts
@@ -150,8 +152,8 @@ rg <- beta_next * 1 / 7
 
 
 
-tratef <- max(as.numeric(0), ( MSIf_ * N * fp1 * rf) )
-transmf <- rpois(tratef)
+tratef <- max(as.numeric(0), ( MSIf_ * N * fp1 * rf) ) 
+transmf <- rpois(tratef * dt)
 dthetaf <- -thetaf * transmf / (MSf * N * fp1)
 #~ dSf <- fp(thetaf) * dthetaf # note prop to transm
 dSf <- -transmf / N
@@ -163,7 +165,7 @@ delta_si_f <- (if (transmf == 0) 0
                else min(meanfield_delta_si_f*2,max(as.numeric(0),rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))))
 
 trateg <- max(as.numeric(0), MSIg_ * N * gp1 * rg)
-transmg <- rpois(trateg)
+transmg <- rpois(trateg * dt)
 dthetag <- -thetag * transmg / (MSg * N * gp1)
 #~ dSg <- gp(thetag) * dthetag # note prop to transm
 dSg <- -transmg / N
@@ -174,9 +176,10 @@ vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
-transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
+transmseed <- rpois(seedrate_next * dt) * (thetah * hp(thetah, hshape, hrate) / hp1) # note imports scaled down by susceptibility in h contacts 
 trateh <- N * MIh * MSh * hp1
-transmh <- rpois(trateh) 
+transmh <- rpois(trateh * dt) 
+
 
 dot_thetah <- thetah * theta_vacc_use  
 dthetah <- -thetah * (transmh + transmseed) / (N * hp1 * MSh ) # seeding happens here
@@ -216,76 +219,101 @@ cumulative_partners_next <-
     tauh * meanfield_delta_si_h
   )
 
-dMSEf <- -gamma1 * MSEf_ +
-  2 * etaf * MSf * MEf -
-  etaf * MSEf_ +
-  (-dSf) * (delta_si_f / fp1) * (MSSf_ / MSf) +
-  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf) +
-  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf)
-dMSIf <- -rf * MSIf_ -
-  gamma1 * MSIf_ +
-  gamma0 * MSEf_ +
-  2 * etaf * MSf * MIf -
-  etaf * MSIf_ +
+dMSEf <- -gamma1 * MSEf_ *dt +
+   etaf * MSf * MEf*dt - #*2
+  etaf * MSEf_*dt +
+  (-dSf) * (delta_si_f / fp1) * (MSSf_ / MSf - MSEf_/MSf) +
+  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf - MSEf_/MSf) +
+  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf - MSEf_/MSf)
+dMSIf <- -rf * MSIf_*dt -
+  gamma1 * MSIf_*dt +
+  gamma0 * MSEf_*dt +
+   etaf * MSf * MIf*dt - #*2
+  etaf * MSIf_*dt +
   (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) +
   (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) +
   (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
 
-dMSEg <- -gamma0 * MSEg_ +
-  2 * etag * MSg * MEg -
-  etag * MSEg_ +
+#~ msf0 = -rf * MSIf_*dt 
+#~ msf1 = -gamma1 * MSIf_*dt 
+#~ msf2 =  gamma0 * MSEf_ *dt
+#~ msf3 =    etaf * MSf * MIf*dt  #*2
+#~ msf4 =  -etaf * MSIf_ *dt
+#~ msf5 =  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) 
+#~ msf6 =  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) 
+#~ msf7 =  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
+
+#~ dMSIf <- msf0 + msf1 + msf2 + msf3 + msf4 + msf5 + msf6 + msf7
+
+#~ print( ' -rf * MSIf_ -  {msf0} ' , when= trateh > 30)
+#~ print( '  gamma1 * MSIf_ + {msf1} ' , when= trateh > 30)
+#~ print( '  gamma0 * MSEf_ + {msf2} ' , when= trateh > 30)
+#~ print( '   etaf * MSf * MIf - #*2 {msf3} ', when= trateh > 30)
+#~ print( '  etaf * MSIf_ + {msf4} ' , when= trateh > 30)
+#~ print( '  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) + {msf5} ', when= trateh > 30 )
+#~ print( '  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) + {msf6}', when= trateh > 30)
+#~ print( ' (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) {msf7}', when= trateh > 30 )
+
+dMSEg <- -gamma0 * MSEg_*dt +
+   etag * MSg * MEg *dt- #*2 
+  etag * MSEg_*dt +
   (-dSg) * (delta_si_g / gp1) * (MSSg_ / MSg) +
-  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg) +
-  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg)
-dMSIg <- -rg * MSIg_ -
-  gamma1 * MSIg_ +
-  gamma0 * MSEg_ +
-  2 * etag * MSg * MIg -
-  etag * MSIg_ +
+  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg - MSEg_/MSg) +
+  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg - MSEg_/MSg)
+dMSIg <- -rg * MSIg_*dt -
+  gamma1 * MSIg_*dt +
+  gamma0 * MSEg_*dt +
+   etag * MSg * MIg*dt - #*2
+  etag * MSIg_ *dt+
   (-dSg) * (delta_si_g / gp1) * (-MSIg_ / MSg) +
   (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg) +
   (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg)
 
-dMSSf <- 1 * etaf * MSf^2 - # 2 or 1?
-                          etaf * MSSf_ -
-                          (-dSf) * (delta_si_f / fp1) * MSSf_ / MSf - # 2 or 1 ?
-                          ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_ / MSf
-dMSSg <- 1 * etag * MSg^2 - # 2 or 1?
-                          etag * MSSg_ -
-                          (-dSg) * (delta_si_g / gp1) * MSSg_ / MSg - # 2 or 1 ?
-                          ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_ / MSg
+dMSSf <- 1 * etaf * MSf^2 *dt- # 2 or 1?
+                          etaf * MSSf_*dt -
+                          2*(-dSf) * (delta_si_f / fp1) * MSSf_ / MSf - # 2 or 1 ?
+                          2*((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_ / MSf
+dMSSg <- 1 * etag * MSg^2*dt - # 2 or 1?
+                          etag * MSSg_*dt -
+                          2*(-dSg) * (delta_si_g / gp1) * MSSg_ / MSg - # 2 or 1 ?
+                          2*((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_ / MSg
 
-dMEf <- -gamma0 * MEf +
-  (-dSf) * (delta_si_f / fp1) +
+dMEf <- -gamma0 * MEf *dt +
+  (-dSf) * ( (1+delta_si_f) / fp1) +
   ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1)
-dMEg <- -gamma0 * MEg +
-  (-dSg) * (delta_si_g / gp1) +
+dMEg <- -gamma0 * MEg*dt +
+  (-dSg) * ( (1+delta_si_g) / gp1) +
   ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1)
-dMEh <- -gamma0 * MEh +
-  (-dSh) * (delta_si_h / hp1) + 
-  ((-dSf) + (-dSg)) * (thetah * hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hu(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hp1 )
 
-dMIf <- -gamma1 * MIf + gamma0 * MEf
-dMIg <- -gamma1 * MIg + gamma0 * MEg
-dMIh <- -gamma1 * MIh + gamma0 * MEh
+
+hup1 <- hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) 
+hu1 <- hu(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) 
+dMEh <- -gamma0 * MEh*dt +
+  (-dSh) * (delta_si_h / hp1) + # +1 for delta_si_h already included 
+  ((-dSf) + (-dSg)) * (thetah * hup1 / hu1 / hp1 )
+
+
+dMIf <- -gamma1 * MIf*dt + gamma0 * MEf*dt
+dMIg <- -gamma1 * MIg*dt + gamma0 * MEg*dt
+dMIh <- -gamma1 * MIh*dt + gamma0 * MEh*dt
 
 reset_weekly <- step %% 7 == 0
 
 ## infected, infectious and not detected:
 newE <- transmf + transmg + transmh + transmseed
 ## exposed, infectious, diagnosed or undiagnosed
-I_next <- max(as.numeric(0), I + gamma0 * E - gamma1 * I)
+I_next <- max(as.numeric(0), I + gamma0 * E*dt - gamma1 * I*dt)
 ## new case detections. some subset of these will be detected each week
-newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E # will accumulate between obvs
-E_next <- max(as.numeric(0), E + newE - gamma0 * E)
+newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E*dt # will accumulate between obvs
+E_next <- max(as.numeric(0), E + newE - gamma0 * E*dt)
 S_next <- max(as.numeric(0), S - newE)
-R_next <- max(as.numeric(0), R + gamma1 * I)
+R_next <- max(as.numeric(0), R + gamma1 * I*dt)
 
 # seed state variables
 # exposed, infectious, diagnosed or undiagnosed
 # new case detections. some subset of these will be detected each week
-newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed # will accumulate between obvs
-Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
+newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed *dt# will accumulate between obvs
+Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed*dt)
 
 
 ## Need as.numeric here to get a good cast to the correct real type
@@ -327,5 +355,14 @@ update(V2) <- V2_next
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
 
-## debugging
-print("time: {time; .0f} veff: {veff} trateh {trateh}")
+# debugging 
+#~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
+#~ print('transmf {transmf} transmg {transmg} transmh {transmh} transmseed {transmseed}', when= trateh > 30)
+#~ print( 'dSh {dSh} dSf {dSf} dSg {dSg} delta_si_h {delta_si_h} MEh {MEh}' , when= trateh > 30)
+#~ print( 'thetah {thetah} hup1 {hup1} hu1 {hu1} ' , when= trateh > 30)
+#~ print( 'MSEf {MSEf}  dMSEf {dMSEf} MSEf_ {MSEf_}' , when = trateh > 30 )
+#~ print( 'MSIf {MSIf}  dMSIf {dMSIf} MSIf_ {MSIf_}' , when = trateh > 30 )
+#~ print("time: {time; .0f} veff: {veff} trateh {trateh} dt are you there? {dt}", when= trateh > 30)
+#~ print( 'MSh {MSh} ' )
+#~ print( '{fp1} {gp1} {hp1} ' )
+#~ print ( '..........................{1}', when = trateh > 30 )

@@ -282,7 +282,7 @@ compare(const typename T::real_type * state,
   typedef typename T::real_type real_type;
   const real_type model_newI = state[19];
   const real_type delta = calc_delta(shared->delta0, shared->delta1,
-                                     shared->delta_slope, state[33]);
+                                     shared->delta_slope, state[37]);
   const real_type cases = dust::math::ceil(model_newI * delta);
   const real_type Yknown = data.Ytravel + data.Yendog;
   const real_type Y = dust::math::ceil(Yknown + data.Yunk);
@@ -398,6 +398,10 @@ public:
     real_type initial_MSSf;
     real_type initial_MSSg;
     real_type initial_R;
+    real_type initial_Reff;
+    real_type initial_Reff_f;
+    real_type initial_Reff_g;
+    real_type initial_Reff_h;
     real_type initial_S;
     real_type initial_V1;
     real_type initial_V2;
@@ -444,10 +448,10 @@ public:
     shared(pars.shared), internal(pars.internal) {
   }
   size_t size() const {
-    return 34;
+    return 38;
   }
   std::vector<real_type> initial(size_t step, rng_state_type& rng_state) {
-    std::vector<real_type> state(34);
+    std::vector<real_type> state(38);
     internal.initial_time = step;
     state[0] = shared->initial_thetaf;
     state[1] = shared->initial_MSEf;
@@ -482,11 +486,15 @@ public:
     state[30] = shared->initial_cumulative_partners;
     state[31] = shared->initial_V1;
     state[32] = shared->initial_V2;
-    state[33] = internal.initial_time;
+    state[33] = shared->initial_Reff_f;
+    state[34] = shared->initial_Reff_g;
+    state[35] = shared->initial_Reff_h;
+    state[36] = shared->initial_Reff;
+    state[37] = internal.initial_time;
     return state;
   }
   void update(size_t step, const real_type * state, rng_state_type& rng_state, real_type * state_next) {
-    const real_type time = state[33];
+    const real_type time = state[37];
     const real_type thetaf = state[0];
     const real_type MSEf = state[1];
     const real_type MEf = state[2];
@@ -531,7 +539,7 @@ public:
     real_type reset_weekly = fmodr<real_type>(step, 7) == 0;
     real_type u2f = (thetaf * fpp(thetaf) + dust::math::pow(thetaf, 2) * fppp(thetaf)) / (real_type) fp(thetaf);
     real_type u2g = (thetag * gpp(thetag) + dust::math::pow(thetag, 2) * gppp(thetag)) / (real_type) gp(thetag);
-    state_next[33] = (step + 1) * shared->dt;
+    state_next[37] = (step + 1) * shared->dt;
     real_type veff = (V1 > 0 ? V1 * ((V2 / (real_type) V1) * (1 - shared->vacc_efficacy) * shared->vacc_efficacy2 + (1 - V2 / (real_type) V1) * shared->vacc_efficacy) : 0);
     real_type MSf = thetaf * (1 - veff) * fp(thetaf) / (real_type) shared->fp1;
     real_type MSg = thetag * (1 - veff) * gp(thetag) / (real_type) shared->gp1;
@@ -582,7 +590,7 @@ public:
     real_type transmseed = dust::random::poisson<real_type>(rng_state, seedrate_next * shared->dt) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1);
     real_type tratef = dust::math::max(static_cast<real_type>(0), (MSIf_ * shared->N * shared->fp1 * rf));
     real_type trateg = dust::math::max(static_cast<real_type>(0), MSIg_ * shared->N * shared->gp1 * rg);
-    real_type trateh = shared->N * MIh * MSh * shared->hp1;
+    real_type trateh = beta_next * shared->N * MIh * MSh * shared->hp1;
     real_type u1h = meanfield_delta_si_h;
     state_next[26] = seedrate_next;
     real_type Eseed_next = dust::math::max(static_cast<real_type>(0), Eseed + transmseed - shared->gamma0 * Eseed * shared->dt);
@@ -590,6 +598,10 @@ public:
     real_type transmg = dust::random::poisson<real_type>(rng_state, trateg * shared->dt);
     real_type transmh = dust::random::poisson<real_type>(rng_state, trateh * shared->dt);
     real_type u2h = huppp(thetah, shared->vacc_targetted, V1, V2, shared->vacc_efficacy, shared->vacc_efficacy2, theta_vacc_use, shared->hshape, shared->hrate) * dust::math::pow(thetah, 2) / (real_type) hup(thetah, shared->vacc_targetted, V1, V2, shared->vacc_efficacy, shared->vacc_efficacy2, theta_vacc_use, shared->hshape, shared->hrate) + 2 * thetah * hupp(thetah, shared->vacc_targetted, V1, V2, shared->vacc_efficacy, shared->vacc_efficacy2, theta_vacc_use, shared->hshape, shared->hrate) / (real_type) hup(thetah, shared->vacc_targetted, V1, V2, shared->vacc_efficacy, shared->vacc_efficacy2, theta_vacc_use, shared->hshape, shared->hrate) + u1h;
+    state_next[36] = (tratef + trateg + trateh) / (real_type) I / (real_type) shared->gamma1;
+    state_next[33] = tratef / (real_type) I / (real_type) shared->gamma1;
+    state_next[34] = trateg / (real_type) I / (real_type) shared->gamma1;
+    state_next[35] = trateh / (real_type) I / (real_type) shared->gamma1;
     state_next[25] = cuts + transmseed;
     real_type dSf = - transmf / (real_type) shared->N;
     real_type dSg = - transmg / (real_type) shared->N;
@@ -878,6 +890,10 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->initial_MSSf = 1;
   shared->initial_MSSg = 1;
   shared->initial_R = 0;
+  shared->initial_Reff = 0;
+  shared->initial_Reff_f = 0;
+  shared->initial_Reff_g = 0;
+  shared->initial_Reff_h = 0;
   shared->initial_V1 = 0;
   shared->initial_V2 = 0;
   shared->initial_cumulative_partners = 0;
@@ -972,8 +988,8 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->initial_beta = shared->beta0;
   shared->initial_dseedrate = shared->dseedrate0;
   shared->initial_seedrate = shared->seedrate0;
-  shared->vacc_amt = shared->dt * dust::math::min(shared->vacc_doses, shared->N) / (real_type) shared->vacc_duration / (real_type) shared->vacc_freq;
-  shared->vacc_amt2 = shared->dt * dust::math::min(shared->vacc_doses2, shared->N) / (real_type) shared->vacc_duration2 / (real_type) shared->vacc_freq;
+  shared->vacc_amt = dust::math::min(shared->vacc_doses, shared->N) / (real_type) shared->vacc_duration / (real_type) shared->vacc_freq;
+  shared->vacc_amt2 = dust::math::min(shared->vacc_doses2, shared->N) / (real_type) shared->vacc_duration2 / (real_type) shared->vacc_freq;
   shared->vacc_fin_day = shared->vacc_start_day + shared->vacc_duration - 1;
   shared->vacc_fin_day2 = shared->vacc_start_day2 + shared->vacc_duration2 - 1;
   shared->xinit = shared->i0 / (real_type) shared->N;
@@ -985,8 +1001,8 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
 template <>
 cpp11::sexp dust_info<model>(const dust::pars_type<model>& pars) {
   const std::shared_ptr<const model::shared_type> shared = pars.shared;
-  cpp11::writable::strings nms({"thetaf", "MSEf", "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", "MSSg", "MSIg", "MIg", "thetah", "MEh", "MIh", "S", "E", "I", "R", "newI", "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", "seedrate", "dseedrate", "theta_vacc", "beta", "cumulative_partners", "V1", "V2", "time"});
-  cpp11::writable::list dim(34);
+  cpp11::writable::strings nms({"thetaf", "MSEf", "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", "MSSg", "MSIg", "MIg", "thetah", "MEh", "MIh", "S", "E", "I", "R", "newI", "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", "seedrate", "dseedrate", "theta_vacc", "beta", "cumulative_partners", "V1", "V2", "Reff_f", "Reff_g", "Reff_h", "Reff", "time"});
+  cpp11::writable::list dim(38);
   dim[0] = cpp11::writable::integers({1});
   dim[1] = cpp11::writable::integers({1});
   dim[2] = cpp11::writable::integers({1});
@@ -1021,8 +1037,12 @@ cpp11::sexp dust_info<model>(const dust::pars_type<model>& pars) {
   dim[31] = cpp11::writable::integers({1});
   dim[32] = cpp11::writable::integers({1});
   dim[33] = cpp11::writable::integers({1});
+  dim[34] = cpp11::writable::integers({1});
+  dim[35] = cpp11::writable::integers({1});
+  dim[36] = cpp11::writable::integers({1});
+  dim[37] = cpp11::writable::integers({1});
   dim.names() = nms;
-  cpp11::writable::list index(34);
+  cpp11::writable::list index(38);
   index[0] = cpp11::writable::integers({1});
   index[1] = cpp11::writable::integers({2});
   index[2] = cpp11::writable::integers({3});
@@ -1057,8 +1077,12 @@ cpp11::sexp dust_info<model>(const dust::pars_type<model>& pars) {
   index[31] = cpp11::writable::integers({32});
   index[32] = cpp11::writable::integers({33});
   index[33] = cpp11::writable::integers({34});
+  index[34] = cpp11::writable::integers({35});
+  index[35] = cpp11::writable::integers({36});
+  index[36] = cpp11::writable::integers({37});
+  index[37] = cpp11::writable::integers({38});
   index.names() = nms;
-  size_t len = 34;
+  size_t len = 38;
   using namespace cpp11::literals;
   return cpp11::writable::list({
            "dim"_nm = dim,

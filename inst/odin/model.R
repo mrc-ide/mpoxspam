@@ -31,6 +31,10 @@ initial(beta) <- beta0
 initial(cumulative_partners) <- 0
 initial( V1 ) <- 0 
 initial( V2 ) <- 0
+initial( Reff_f ) <- 0 
+initial( Reff_g ) <- 0 
+initial( Reff_h ) <- 0 
+initial( Reff ) <- 0
 
 xinit <- i0 / N
 
@@ -90,8 +94,8 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  dt * min(vacc_doses, N) / vacc_duration / vacc_freq
-vacc_amt2 <- dt * min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
+vacc_amt <-   min(vacc_doses, N) / vacc_duration / vacc_freq
+vacc_amt2 <-  min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
 vacc_fin_day <- vacc_start_day + vacc_duration - 1
 vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 
@@ -177,8 +181,9 @@ delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
 transmseed <- rpois(seedrate_next * dt) * (thetah * hp(thetah, hshape, hrate) / hp1) # note imports scaled down by susceptibility in h contacts 
-trateh <- N * MIh * MSh * hp1
+trateh <- beta_next * N * MIh * MSh * hp1
 transmh <- rpois(trateh * dt) 
+
 
 
 dot_thetah <- thetah * theta_vacc_use  
@@ -234,25 +239,6 @@ dMSIf <- -rf * MSIf_*dt -
   (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) +
   (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
 
-#~ msf0 = -rf * MSIf_*dt 
-#~ msf1 = -gamma1 * MSIf_*dt 
-#~ msf2 =  gamma0 * MSEf_ *dt
-#~ msf3 =    etaf * MSf * MIf*dt  #*2
-#~ msf4 =  -etaf * MSIf_ *dt
-#~ msf5 =  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) 
-#~ msf6 =  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) 
-#~ msf7 =  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
-
-#~ dMSIf <- msf0 + msf1 + msf2 + msf3 + msf4 + msf5 + msf6 + msf7
-
-#~ print( ' -rf * MSIf_ -  {msf0} ' , when= trateh > 30)
-#~ print( '  gamma1 * MSIf_ + {msf1} ' , when= trateh > 30)
-#~ print( '  gamma0 * MSEf_ + {msf2} ' , when= trateh > 30)
-#~ print( '   etaf * MSf * MIf - #*2 {msf3} ', when= trateh > 30)
-#~ print( '  etaf * MSIf_ + {msf4} ' , when= trateh > 30)
-#~ print( '  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) + {msf5} ', when= trateh > 30 )
-#~ print( '  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) + {msf6}', when= trateh > 30)
-#~ print( ' (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) {msf7}', when= trateh > 30 )
 
 dMSEg <- -gamma0 * MSEg_*dt +
    etag * MSg * MEg *dt- #*2 
@@ -351,6 +337,11 @@ update(cumulative_partners) <- cumulative_partners_next
 update(V1) <- V1_next
 update(V2) <- V2_next
 
+update(Reff_f) <- tratef / I / gamma1
+update(Reff_g) <- trateg  / I / gamma1
+update(Reff_h) <- trateh / I / gamma1
+update( Reff ) <- (tratef + trateg + trateh) / I / gamma1 
+
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
@@ -366,3 +357,4 @@ config(compare) <- "compare.hpp"
 #~ print( 'MSh {MSh} ' )
 #~ print( '{fp1} {gp1} {hp1} ' )
 #~ print ( '..........................{1}', when = trateh > 30 )
+

@@ -27,6 +27,7 @@ model <- R6::R6Class(
      delta1 = list(has_default = TRUE, default_value = 0.5, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      delta_slope = list(has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      dseedrate0 = list(has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
+     dt = list(has_default = TRUE, default_value = 0.1, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      etaf = list(has_default = TRUE, default_value = 0.005, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      etag = list(has_default = TRUE, default_value = 0.01, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      exp_noise = list(has_default = TRUE, default_value = 1000000L, rank = 0, min = -Inf, max = Inf, integer = FALSE),

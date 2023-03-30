@@ -306,29 +306,101 @@ test_that("vaccination works after large epidemic",{
   n_par <- 3
   t <- seq(1, 200)
   
-  # No vaccination when doses = 0
+  # No vaccination
   pars$vacc_doses <- pars$vacc_doses2 <- 0
   pars$vacc_start_day <- pars$vacc_start_day2 <- 0
   m <- model$new(pars, 1, n_par, seed = 1)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
   
+  ## Infections still happen when S = 0
   expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
 
   par(mfrow = c(1, 2), mar = c(3, 3, 1, 1), mgp = c(1.5, 0.5, 0))
-  matplot(t(res["R", , ]), type = "l", lty = 1, col = 1, ylab = "S, I, R")
+  matplot(t(res["R", , ]), type = "l", lty = 1, col = 4, ylab = "S, I, R")
   matlines(t(res["E", , ]), lty = 1, col = 2)
   matlines(t(res["I", , ]), lty = 1, col = 3)
-  matlines(t(res["S", , ]), lty = 1, col = 4)
+  matlines(t(res["S", , ]), lty = 1, col = 1)
   matlines(t(res["V1", , ]), lty = 1, col = 5)
   matlines(t(res["V2", , ]), lty = 1, col = 5)
   legend("bottomright", legend = c("S", "E", "I", "R", "V1+V2"), fill = 1:5)
 
-  matplot(t(colSums(res[c("S", "E", "I", "R"), , ])), type = "l", lty = 1,
+  matplot(t(colSums(res[c("R", "E", "I", "S"), , ])), type = "l", lty = 1,
           col = 1, ylim = c(0, 15e5), ylab = "S+E+I+R")
   matlines(t(res["E", , ]), lty = 1, col = 2)
   matlines(t(res["I", , ]), lty = 1, col = 3)
   
-  matplot(t(pars$N - colSums(res[c("S", "E", "I"), , ])), type = "l", lty = 1, col = 1)
+  pars <- reference_pars()
+  pars$beta0 <- 20
+  pars$seedrate0 <- 0
+  pars$seedrate_sd <- 0
+  pars$beta_sd <- 0
+  pars$i0 <- 10
+  n_par <- 3
+  t <- seq(1, 200)
+  
+  # No vaccination or seeding
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
+  m <- model$new(pars, 1, n_par, seed = 1)
+  res <- m$simulate(t)
+  rownames(res) <- names(m$info()$index)
+  
+  ## Infections still happen when S = 0
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
+
+  
+  par(mfrow = c(1, 2), mar = c(3, 3, 1, 1), mgp = c(1.5, 0.5, 0))
+  matplot(t(res["R", , ]), type = "l", lty = 1, col = 4, ylab = "S, I, R")
+  matlines(t(res["E", , ]), lty = 1, col = 2)
+  matlines(t(res["I", , ]), lty = 1, col = 3)
+  matlines(t(res["S", , ]), lty = 1, col = 1)
+  matlines(t(res["V1", , ]), lty = 1, col = 5)
+  matlines(t(res["V2", , ]), lty = 1, col = 5)
+  legend("bottomright", legend = c("S", "E", "I", "R", "V1+V2"), fill = 1:5)
+  
+  matplot(t(colSums(res[c("R", "E", "I", "S"), , ])), type = "l", lty = 1,
+          col = 6, ylim = c(0, 15e5), ylab = "S+E+I+R")
+  matlines(t(res["S", , ]), lty = 1, col = 1)
+  
+  matplot(t(res["S", , ]), type = "l", lty = 1, col = 1, ylab = "S, newI")
+  matlines(t(res["newI", , ]), lty = 1, col = 3)
+
+  
+  ## what about with a smaller beta
+  
+  pars <- reference_pars()
+  pars$beta0 <- 5
+  pars$beta_sd <- 0
+  pars$i0 <- 100
+  pars$seedrate0 <- 10
+  pars$seedrate_sd <- 1
+  t <- seq(1, 800)
+  
+  # No vaccination
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
+  m <- model$new(pars, 1, n_par, seed = 1)
+  res <- m$simulate(t)
+  rownames(res) <- names(m$info()$index)
+  
+  par(mfrow = c(1, 2), mar = c(3, 3, 1, 1), mgp = c(1.5, 0.5, 0))
+  matplot(t(res["R", , ]), type = "l", lty = 1, col = 4, ylab = "S, I, R")
+  matlines(t(res["E", , ]), lty = 1, col = 2)
+  matlines(t(res["I", , ]), lty = 1, col = 3)
+  matlines(t(res["S", , ]), lty = 1, col = 1)
+  matlines(t(res["V1", , ]), lty = 1, col = 5)
+  matlines(t(res["V2", , ]), lty = 1, col = 5)
+  legend("topright", legend = c("S", "E", "I", "R", "V1+V2"), fill = 1:5)
+  
+  matplot(t(colSums(res[c("R", "E", "I", "S"), , ])), type = "l", lty = 1,
+          col = 6, ylim = c(0, 15e5), ylab = "S+E+I+R")
+  matlines(t(res["S", , ]), lty = 1, col = 1)
+  
+  matplot(t(res["newI", , ]), type = "l", lty = 1, col = 3, ylab = "newI")
+  
+  
+  
+
 })

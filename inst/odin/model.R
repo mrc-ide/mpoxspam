@@ -36,6 +36,8 @@ initial( Reff_g ) <- 0
 initial( Reff_h ) <- 0 
 initial( Reff ) <- 0
 
+## debugging
+print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -346,6 +348,7 @@ update( Reff ) <- (tratef + trateg + trateh) / I / gamma1
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
 
+
 # debugging 
 #~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
 #~ print('transmf {transmf} transmg {transmg} transmh {transmh} transmseed {transmseed}', when= trateh > 30)
@@ -357,4 +360,5 @@ config(compare) <- "compare.hpp"
 #~ print( 'MSh {MSh} ' )
 #~ print( '{fp1} {gp1} {hp1} ' )
 #~ print ( '..........................{1}', when = trateh > 30 )
+
 

@@ -29,7 +29,7 @@ test_that("Can run the gpu compare on the cpu", {
   gen <- compile_gpu(gpu = FALSE, gpu_generate = TRUE, verbose = FALSE)
 
   pars <- reference_pars()
-  data <- filter_data()
+  data <- filter_data(pars$dt)
 
   np <- 10
   mod_cpu <- gen$new(pars, 0, np, seed = 1L)

@@ -348,7 +348,7 @@ config(compare) <- "compare.hpp"
 
 
 # debugging 
-print("time: {time; .1f} veff: {veff} add_vaccine: {add_vaccine; .0f}")
+# print("time: {time; .1f} veff: {veff} add_vaccine: {add_vaccine; .0f}")
 #~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
 #~ print('transmf {transmf} transmg {transmg} transmh {transmh} transmseed {transmseed}', when= trateh > 30)
 #~ print( 'dSh {dSh} dSf {dSf} dSg {dSg} delta_si_h {delta_si_h} MEh {MEh}' , when= trateh > 30)

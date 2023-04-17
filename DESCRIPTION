@@ -1,6 +1,6 @@
 Package: mpoxspam
 Title: Pair Approximation Transmission Model of Mpox
-Version: 0.2.2
+Version: 0.2.3
 Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
                     email = "l.whittles@imperial.ac.uk"),
              person("Rich", "FitzJohn", role = c("aut")),
@@ -17,11 +17,10 @@ BugReports: https://github.com/mrc-ide/mpoxspam/issues
 Depends:
     R (>= 3.0.2)
 Imports:
-    dust (>= 0.14.0),
     mcstate (>= 0.9.13)
 LinkingTo:
     cpp11,
-    dust,
+    dust (>= 0.14.0),
     lostturnip (>= 0.1.2)
 Suggests:
     lostturnip (>= 0.1.2),

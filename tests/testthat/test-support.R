@@ -126,7 +126,7 @@ test_that("compiled ll_betabinom agrees", {
 
 
 test_that("hu* functions behave with very small thetav", {
-  skip("finish writing me please")
+ 
   test_hu_theta <- function(thetav) {
     x <- 2.7582643254561925e-05
     vr <- 0.80000000000000004
@@ -141,6 +141,18 @@ test_that("hu* functions behave with very small thetav", {
   thetav <- 4.0732983338996529e-157
   thetav <- exp(seq(log(1e-2), log(1e-150), length.out = 100))
   y <- sapply(thetav, test_hu_theta)
+  
+  par(mfrow = c(2, 2))
+  for (i in 1:4) {
+  plot(thetav, y[i, ], log = "x", type = "l",
+       ylab = sprintf("hu%s(thetav)", c("", "p", "pp", "ppp")[i]))
+  }
 
-  test_hu_theta(1e-6)
+  eps <- .Machine$double.eps
+  expect_equal(test_hu_theta(eps ^ (1/3)) == test_hu_theta(eps), c(FALSE, FALSE, FALSE, TRUE))
+  expect_equal(test_hu_theta(eps ^ (1/2)) == test_hu_theta(eps), c(FALSE, FALSE, TRUE, TRUE))
+  expect_equal(test_hu_theta(eps* 1.1) == test_hu_theta(eps), c(FALSE, FALSE, TRUE, TRUE))
+  expect_equal(test_hu_theta(eps) == test_hu_theta(eps), c(TRUE, TRUE, TRUE, TRUE))
+  expect_false(any(test_hu_theta(eps ^ (1/3) * 2) == test_hu_theta(eps ^ (1/3))))
+
 })

@@ -31,3 +31,72 @@ ldbetabinom <- function(data_a, data_b, model_a, model_b, rho) {
   lchoose(data_a + data_b, data_a) +
     lbeta(data_a + a, data_b + b) - lbeta(a, b)
 }
+
+##'
+##' @title PGF of long-term partnership network
+##'
+##' @param x model output
+##' @export
+pgf_f <- function(x) {
+  .Call(`_mpoxspam_test_f`, x)
+}
+
+##'
+##' @title PGF of casual partnership network
+##'
+##' @param x model output
+##' @export 
+pgf_g <- function(x) {
+  .Call(`_mpoxspam_test_g`, x)
+}
+
+##'
+##' @title PGF of one-time partnership network
+##' @param x model output
+##' @param hs shape of gamma-distributed one-time partnership rate
+##' @param hr rate param of gamma-distributed one-time partnership rate
+##' @export
+pgf_h <- function(x, hs, hr) {
+  .Call(`_mpoxspam_test_h`, x, hs, hr)
+}
+
+
+
+
+##'
+##' @title caluclate R0
+##'
+##' @param beta transmission rate
+##' @param gamma1 rate of I->R
+##' @param hs shape of gamma-distributed one-time partnership rate
+##' @param hr rate param of gamma-distributed one-time partnership rate
+##' @export
+calcR0 <- function(beta = 10, gamma1 = 1/4, hs = 0.26, hr = 12.95 )
+{
+	rf <- beta * 1.5/7# factor 1.5/7 is act rate per day; factor 1.5 b/c more contacts per week in long partnerships 
+	rg <- beta * 1/7
+	pf = rf / (rf + gamma1)
+	pg = rg / (rg + gamma1)
+	
+	hpp <- pgf_h(1, hs, hr)[3]
+	hp <- pgf_h(1, hs, hr)[2] 
+	gpp <- pgf_g(1)[3]
+	gp <- pgf_g(1)[2] 
+	fpp <- pgf_f(1)[3]
+	fp <- pgf_f(1)[2] 
+	
+	#NOTE no eta terms b/c of separate timescales
+	Rff = pf*fpp/fp 
+	Rgg = pg*gpp/gp
+	Rhh = (1+hpp/hp) * beta / gamma1
+	Rgf = Rhf = pf * fp 
+	Rfg = Rhg = pg * gp 
+	Rfh = Rgh = (beta / gamma1)*hp 
+	K = matrix( c( 
+		  Rff, Rfg, Rfh
+		, Rgf, Rgg, Rgh
+		, Rhf, Rhg, Rhh 
+	) , nrow = 3, byrow=TRUE )
+	R0 = eigen(K)$values[1] 
+	c( R0 = R0 , fR0 = Rff, gR0 = Rgg, hR0 = Rhh )
+}

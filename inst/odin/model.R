@@ -31,6 +31,10 @@ initial(beta) <- beta0
 initial(cumulative_partners) <- 0
 initial( V1 ) <- 0 
 initial( V2 ) <- 0
+initial( Reff_f ) <- 0 
+initial( Reff_g ) <- 0 
+initial( Reff_h ) <- 0 
+initial( Reff ) <- 0
 
 xinit <- i0 / N
 
@@ -41,17 +45,19 @@ gp1 <- gp(as.numeric(1))
 hp1 <- hp(as.numeric(1), hshape, hrate)
 
 
-## We'll need this; strictly this is (step + 1) * dt but we use unit
-## timesteps here.
-initial(time) <- step
-update(time) <- step + 1
-
 stochastic_behaviour <- user(1) # Logical switch for user-input trends in beta and seedrate
 # only used if stochastic_behaviour == 0, vectors specifying beta and seedrate on each day
 beta_step[] <- user()
 dseedrate_step[] <- user()
 dim(beta_step) <- user()
 dim(dseedrate_step) <- user()
+dt <- user(.1)
+
+## We'll need this; strictly this is (step + 1) * dt but we use unit
+## timesteps here.
+initial(time) <- step
+update(time) <- (step + 1)*dt
+
 
 beta0 <- user(2.25)
 beta_freq <- user(7)
@@ -88,8 +94,8 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-  min(vacc_doses, N) / vacc_duration / vacc_freq
-vacc_amt2 <- min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
+vacc_amt <-   min(vacc_doses, N) / vacc_duration / vacc_freq
+vacc_amt2 <-  min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
 vacc_fin_day <- vacc_start_day + vacc_duration - 1
 vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
 
@@ -107,25 +113,27 @@ add_vaccine2 <-
 
 
 V1_next <- if (add_vaccine) V1 + vacc_amt / N else V1 
-V2_next <- if ( add_vaccine2 ) V2 + vacc_amt2 / N else V2
+V2_next <- if (add_vaccine2) V2 + vacc_amt2 / N else V2
 # effective proportion of population protected by vacc
 veff <- if (V1>0) V1*( (V2/V1)*(1-vacc_efficacy)*vacc_efficacy2 + (1-V2/V1)*vacc_efficacy )  else 0
-#~ S_vacc_use <- if (add_vaccine) S_vacc * (1 - amt_random - amt_targetted) else S_vacc
+veff_targetted <- veff * vacc_targetted 
+veff_untargetted <- veff * (1-vacc_targetted)
 
-theta_vacc_use <- if (add_vaccine) update_theta_vacc4_3(veff, hshape, hrate) else theta_vacc
+theta_vacc_use <- if (add_vaccine) update_theta_vacc4_3(veff_targetted, hshape, hrate) else theta_vacc
 
-vaccine_scale_f <- if(add_vaccine) 1-(vacc_efficacy*vacc_amt/N + (1-vacc_efficacy)*vacc_efficacy2*vacc_amt2/N) else 1
-vaccine_scale_g <- vaccine_scale_f
+vacc_rescale <- if(add_vaccine) 1-(vacc_efficacy*vacc_amt/N + (1-vacc_efficacy)*vacc_efficacy2*vacc_amt2/N) else 1
 
-MSEf_vacc <- MSEf * vaccine_scale_f
-MSSf_vacc <- MSSf * vaccine_scale_f^2
-MSIf_vacc <- MSIf * vaccine_scale_f
-MSEg_vacc <- MSEg * vaccine_scale_g
-MSSg_vacc <- MSSg * vaccine_scale_g^2
-MSIg_vacc <- MSIg * vaccine_scale_g
+MSEf_ <- MSEf * vacc_rescale
+MSSf_ <- MSSf * vacc_rescale^2
+MSIf_ <- MSIf * vacc_rescale
+MSEg_ <- MSEg * vacc_rescale
+MSSg_ <- MSSg * vacc_rescale^2
+MSIg_ <- MSIg * vacc_rescale
 
 MSf <- thetaf * (1-veff) * fp(thetaf) / fp1
 MSg <- thetag * (1-veff) * gp(thetag) / gp1
+MSh <- (1-veff_untargetted) * thetah*theta_vacc_use* hp(thetah*theta_vacc_use, hshape, hrate) / hp1
+
 
 ## used if stochastic_behaviour == 0
 beta_det <- if (as.integer(step) >= length(beta_step))
@@ -138,7 +146,7 @@ dseedrate_rw <- if (time %% beta_freq == 0) rnorm(dseedrate, seedrate_sd) else d
 beta_rw <- if (time %% beta_freq == 0) max(as.numeric(0), rnorm(beta, beta_sd)) else beta
 
 dseedrate_next <- if (stochastic_behaviour) dseedrate_rw else dseedrate_det
-seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next)
+seedrate_next <- max(as.numeric(0), seedrate + dseedrate_next*dt)
 beta_next <- if (stochastic_behaviour) beta_rw else beta_det
 
 ## factor 1.5 / 7 is act rate per day; factor 1.5 b/c more contacts
@@ -148,11 +156,11 @@ rg <- beta_next * 1 / 7
 
 
 
-## become poorly defined and go NA or non-finite
-tratef <- max(as.numeric(0), ( MSIf_vacc * N * fp1 * rf) )
-transmf <- rpois(tratef)
+tratef <- max(as.numeric(0), ( MSIf_ * N * fp1 * rf) ) 
+transmf <- rpois(tratef * dt)
 dthetaf <- -thetaf * transmf / (MSf * N * fp1)
-dSf <- fp(thetaf) * dthetaf # note prop to transm
+#~ dSf <- fp(thetaf) * dthetaf # note prop to transm
+dSf <- -transmf / N
 meanfield_delta_si_f <- (thetaf * fpp(thetaf) / fp(thetaf))
 u1f <- meanfield_delta_si_f
 u2f <- (thetaf * fpp(thetaf) + thetaf^2 * fppp(thetaf)) / fp(thetaf)
@@ -160,10 +168,11 @@ vf <- min(  u2f - u1f^2, 2*meanfield_delta_si_f )
 delta_si_f <- (if (transmf == 0) 0
                else min(meanfield_delta_si_f*2,max(as.numeric(0),rnorm(meanfield_delta_si_f, sqrt(vf / transmf)))))
 
-trateg <- max(as.numeric(0), MSIg_vacc * N * gp1 * rg)
-transmg <- rpois(trateg)
+trateg <- max(as.numeric(0), MSIg_ * N * gp1 * rg)
+transmg <- rpois(trateg * dt)
 dthetag <- -thetag * transmg / (MSg * N * gp1)
-dSg <- gp(thetag) * dthetag # note prop to transm
+#~ dSg <- gp(thetag) * dthetag # note prop to transm
+dSg <- -transmg / N
 meanfield_delta_si_g <- (thetag * gpp(thetag) / gp(thetag))
 u1g <- meanfield_delta_si_g
 u2g <- (thetag * gpp(thetag) + thetag^2 * gppp(thetag)) / gp(thetag)
@@ -171,19 +180,16 @@ vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
-transmseed <- rpois(seedrate_next) * (thetah * hp(thetah, hshape, hrate) / hp1)
-
-
-trateh <- max(as.numeric(0), beta_next * MIh * N * hp1 * (S/N)*(1-V1*vacc_efficacy+V2*(1-vacc_efficacy)*vacc_efficacy2) )
-transmh <- rpois(trateh) 
+transmseed <- rpois(seedrate_next * dt) * (thetah * hp(thetah, hshape, hrate) / hp1) # note imports scaled down by susceptibility in h contacts 
+trateh <- beta_next * N * MIh * MSh * hp1
+transmh <- rpois(trateh * dt) 
 
 
 
-dot_thetah <- thetah * theta_vacc_use
-
-MSh <- thetah * hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hp1 # only unvacc
+dot_thetah <- thetah * theta_vacc_use  
 dthetah <- -thetah * (transmh + transmseed) / (N * hp1 * MSh ) # seeding happens here
-dSh <- hup(thetah,  vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2 , theta_vacc_use, hshape, hrate) * dthetah *(1-veff) # note prop to transm, (1-veff) added because hu(x) generates normalised dist among unvacc
+#~ dSh <- hup(thetah,  vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2 , theta_vacc_use, hshape, hrate) * dthetah *(1-veff) # note prop to transm, (1-veff) added because hu(x) generates normalised dist among unvacc
+dSh <- -(transmh + transmseed)/N
 meanfield_delta_si_h <- (1 + thetah * hupp(thetah, vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) /
                            hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate)) # note + 1 for mfsh (vs f & g)
 u1h <- meanfield_delta_si_h
@@ -218,90 +224,96 @@ cumulative_partners_next <-
     tauh * meanfield_delta_si_h
   )
 
-dMSEf <- -gamma1 * MSEf +
-  2 * etaf * MSf * MEf -
-  etaf * MSEf +
-  (-dSf) * (delta_si_f / fp1) * (MSSf_vacc / MSf) +
-  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_vacc / MSf) +
-  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_vacc / MSf)
-dMSIf <- -rf * MSIf -
-  gamma1 * MSIf +
-  gamma0 * MSEf +
-  2 * etaf * MSf * MIf -
-  etaf * MSIf +
-  (-dSf) * (delta_si_f / fp1) * (-MSIf_vacc / MSf) +
-  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_vacc / MSf) +
-  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_vacc / MSf)
+dMSEf <- -gamma1 * MSEf_ *dt +
+   etaf * MSf * MEf*dt - #*2
+  etaf * MSEf_*dt +
+  (-dSf) * (delta_si_f / fp1) * (MSSf_ / MSf - MSEf_/MSf) +
+  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf - MSEf_/MSf) +
+  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (MSSf_ / MSf - MSEf_/MSf)
+dMSIf <- -rf * MSIf_*dt -
+  gamma1 * MSIf_*dt +
+  gamma0 * MSEf_*dt +
+   etaf * MSf * MIf*dt - #*2
+  etaf * MSIf_*dt +
+  (-dSf) * (delta_si_f / fp1) * (-MSIf_ / MSf) +
+  (-dSg) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf) +
+  (-dSh) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * (-MSIf_ / MSf)
 
-dMSEg <- -gamma0 * MSEg +
-  2 * etag * MSg * MEg -
-  etag * MSEg +
-  (-dSg) * (delta_si_g / gp1) * (MSSg_vacc / MSg) +
-  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_vacc / MSg) +
-  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_vacc / MSg)
-dMSIg <- -rg * MSIg -
-  gamma1 * MSIg +
-  gamma0 * MSEg +
-  2 * etag * MSg * MIg -
-  etag * MSIg +
-  (-dSg) * (delta_si_g / gp1) * (-MSIg_vacc / MSg) +
-  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_vacc / MSg) +
-  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_vacc / MSg)
 
-dMSSf <- 1 * etaf * MSf^2 - # 2 or 1?
-                          etaf * MSSf_vacc -
-                          (-dSf) * (delta_si_f / fp1) * MSSf_vacc / MSf - # 2 or 1 ?
-                          ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_vacc / MSf
-dMSSg <- 1 * etag * MSg^2 - # 2 or 1?
-                          etag * MSSg_vacc -
-                          (-dSg) * (delta_si_g / gp1) * MSSg_vacc / MSg - # 2 or 1 ?
-                          ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_vacc / MSg
+dMSEg <- -gamma0 * MSEg_*dt +
+   etag * MSg * MEg *dt- #*2 
+  etag * MSEg_*dt +
+  (-dSg) * (delta_si_g / gp1) * (MSSg_ / MSg) +
+  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg - MSEg_/MSg) +
+  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (MSSg_ / MSg - MSEg_/MSg)
+dMSIg <- -rg * MSIg_*dt -
+  gamma1 * MSIg_*dt +
+  gamma0 * MSEg_*dt +
+   etag * MSg * MIg*dt - #*2
+  etag * MSIg_ *dt+
+  (-dSg) * (delta_si_g / gp1) * (-MSIg_ / MSg) +
+  (-dSf) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg) +
+  (-dSh) * (thetag * gp(thetag) / g(thetag) / gp1) * (-MSIg_ / MSg)
 
-dMEf <- -gamma0 * MEf +
-  (-dSf) * (delta_si_f / fp1) +
+dMSSf <- 1 * etaf * MSf^2 *dt- # 2 or 1?
+                          etaf * MSSf_*dt -
+                          2*(-dSf) * (delta_si_f / fp1) * MSSf_ / MSf - # 2 or 1 ?
+                          2*((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1) * MSSf_ / MSf
+dMSSg <- 1 * etag * MSg^2*dt - # 2 or 1?
+                          etag * MSSg_*dt -
+                          2*(-dSg) * (delta_si_g / gp1) * MSSg_ / MSg - # 2 or 1 ?
+                          2*((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1) * MSSg_ / MSg
+
+dMEf <- -gamma0 * MEf *dt +
+  (-dSf) * ( (1+delta_si_f) / fp1) +
   ((-dSg) + (-dSh)) * (thetaf * fp(thetaf) / f(thetaf) / fp1)
-dMEg <- -gamma0 * MEg +
-  (-dSg) * (delta_si_g / gp1) +
+dMEg <- -gamma0 * MEg*dt +
+  (-dSg) * ( (1+delta_si_g) / gp1) +
   ((-dSf) + (-dSh)) * (thetag * gp(thetag) / g(thetag) / gp1)
-dMEh <- -gamma0 * MEh +
-  (-dSh) * (delta_si_h / hp1) + 
-  ((-dSf) + (-dSg)) * (thetah * hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hu(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) / hp1 )
 
-dMIf <- -gamma1 * MIf + gamma0 * MEf
-dMIg <- -gamma1 * MIg + gamma0 * MEg
-dMIh <- -gamma1 * MIh + gamma0 * MEh
+
+hup1 <- hup(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) 
+hu1 <- hu(thetah,vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2, theta_vacc_use, hshape, hrate) 
+dMEh <- -gamma0 * MEh*dt +
+  (-dSh) * (delta_si_h / hp1) + # +1 for delta_si_h already included 
+  ((-dSf) + (-dSg)) * (thetah * hup1 / hu1 / hp1 )
+
+
+dMIf <- -gamma1 * MIf*dt + gamma0 * MEf*dt
+dMIg <- -gamma1 * MIg*dt + gamma0 * MEg*dt
+dMIh <- -gamma1 * MIh*dt + gamma0 * MEh*dt
 
 reset_weekly <- step %% 7 == 0
 
 ## infected, infectious and not detected:
 newE <- transmf + transmg + transmh + transmseed
 ## exposed, infectious, diagnosed or undiagnosed
-I_next <- max(as.numeric(0), I + gamma0 * E - gamma1 * I)
+I_next <- max(as.numeric(0), I + gamma0 * E*dt - gamma1 * I*dt)
 ## new case detections. some subset of these will be detected each week
-newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E # will accumulate between obvs
-E_next <- max(as.numeric(0), E + newE - gamma0 * E)
+newI_next <- (if (reset_weekly) 0 else newI) + gamma0 * E*dt # will accumulate between obvs
+E_next <- max(as.numeric(0), E + newE - gamma0 * E*dt)
 S_next <- max(as.numeric(0), S - newE)
-R_next <- max(as.numeric(0), R + gamma1 * I)
+R_next <- max(as.numeric(0), R + gamma1 * I*dt)
 
 # seed state variables
 # exposed, infectious, diagnosed or undiagnosed
 # new case detections. some subset of these will be detected each week
-newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed # will accumulate between obvs
-Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed)
+newIseed_next <- (if (reset_weekly) 0 else newIseed) + gamma0 * Eseed *dt# will accumulate between obvs
+Eseed_next <- max(as.numeric(0), Eseed + transmseed - gamma0 * Eseed*dt)
 
 
 ## Need as.numeric here to get a good cast to the correct real type
 update(thetaf) <- max(as.numeric(1e-9), min(as.numeric(1), thetaf + dthetaf))
-update(MSEf) <- max(as.numeric(0), min(as.numeric(1), MSEf_vacc + dMSEf) )
+update(MSEf) <- max(as.numeric(0), min(as.numeric(1), MSEf_ + dMSEf) )
 update(MEf) <- max(as.numeric(0), MEf + dMEf)
-update(MSSf) <- max(as.numeric(0), min( as.numeric(1), MSSf_vacc + dMSSf) )
-update(MSIf) <- max(as.numeric(0), min( as.numeric(1) ,  MSIf_vacc + dMSIf) )
+update(MSSf) <- max(as.numeric(0), min( as.numeric(1), MSSf_ + dMSSf) )
+update(MSIf) <- max(as.numeric(0), min( as.numeric(1) ,  MSIf_ + dMSIf) )
 update(MIf) <- max(as.numeric(0), MIf + dMIf)
 update(thetag) <- max(as.numeric(1e-9), min(as.numeric(1), thetag + dthetag))
-update(MSEg) <- max(as.numeric(0), min( as.numeric(1), MSEg_vacc + dMSEg))
+update(MSEg) <- max(as.numeric(0), min( as.numeric(1), MSEg_ + dMSEg))
 update(MEg) <- max(as.numeric(0), MEg + dMEg)
-update(MSSg) <- max(as.numeric(0), min( as.numeric(1), MSSg_vacc + dMSSg) )
-update(MSIg) <- max(as.numeric(0), min( as.numeric(1), MSIg_vacc + dMSIg) )
+update(MSSg) <- max(as.numeric(0), min( as.numeric(1), MSSg_ + dMSSg) )
+update(MSIg) <- max(as.numeric(0), min( as.numeric(1), MSIg_ + dMSIg) )
 update(MIg) <- max(as.numeric(0), MIg + dMIg)
 update(thetah) <- max(as.numeric(1e-9), min(as.numeric(1), thetah + dthetah))
 update(MEh) <- max(as.numeric(0), MEh + dMEh)
@@ -325,9 +337,27 @@ update(cumulative_partners) <- cumulative_partners_next
 update(V1) <- V1_next
 update(V2) <- V2_next
 
+update(Reff_f) <- tratef / I / gamma1
+update(Reff_g) <- trateg  / I / gamma1
+update(Reff_h) <- trateh / I / gamma1
+update( Reff ) <- (tratef + trateg + trateh) / I / gamma1 
+
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
 
-## debugging
-print("time: {time; .0f} veff: {veff} trateh {trateh}")
+
+# debugging 
+# print("time: {time; .1f} veff: {veff} add_vaccine: {add_vaccine; .0f}")
+#~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
+#~ print('transmf {transmf} transmg {transmg} transmh {transmh} transmseed {transmseed}', when= trateh > 30)
+#~ print( 'dSh {dSh} dSf {dSf} dSg {dSg} delta_si_h {delta_si_h} MEh {MEh}' , when= trateh > 30)
+#~ print( 'thetah {thetah} hup1 {hup1} hu1 {hu1} ' , when= trateh > 30)
+#~ print( 'MSEf {MSEf}  dMSEf {dMSEf} MSEf_ {MSEf_}' , when = trateh > 30 )
+#~ print( 'MSIf {MSIf}  dMSIf {dMSIf} MSIf_ {MSIf_}' , when = trateh > 30 )
+#~ print("time: {time; .0f} veff: {veff} trateh {trateh} dt are you there? {dt}", when= trateh > 30)
+#~ print( 'MSh {MSh} ' )
+#~ print( '{fp1} {gp1} {hp1} ' )
+#~ print ( '..........................{1}', when = trateh > 30 )
+
+

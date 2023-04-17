@@ -132,10 +132,11 @@ reference_pars <- function() {
        compare_travel = "binom",
        stochastic_behaviour = 1,
        beta_step = c(0, 0),
-       dseedrate_step = c(0, 0))
+       dseedrate_step = c(0, 0),
+       dt = 0.1)
 }
 
 
-filter_data <- function() {
-  mcstate::particle_filter_data(reference_data(), "day", 1, 1)
+filter_data <- function(dt) {
+  mcstate::particle_filter_data(reference_data(), "day", rate = 1 / dt, 1)
 }

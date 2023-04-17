@@ -13,6 +13,9 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/calcR0.html</loc>
+  </url>
+  <url>
     <loc>/reference/compile_gpu.html</loc>
   </url>
   <url>
@@ -29,5 +32,14 @@
   </url>
   <url>
     <loc>/reference/model_index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pgf_f.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pgf_g.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pgf_h.html</loc>
   </url>
 </urlset>

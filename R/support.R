@@ -32,18 +32,30 @@ ldbetabinom <- function(data_a, data_b, model_a, model_b, rho) {
     lbeta(data_a + a, data_b + b) - lbeta(a, b)
 }
 
-
-#' @export
+##'
+##' @title PGF of long-term partnership network
+##'
+##' @param x model output
+##' @export
 pgf_f <- function(x) {
   .Call(`_mpoxspam_test_f`, x)
 }
 
-#' @export 
+##'
+##' @title PGF of casual partnership network
+##'
+##' @param x model output
+##' @export 
 pgf_g <- function(x) {
   .Call(`_mpoxspam_test_g`, x)
 }
 
-#' @export
+##'
+##' @title PGF of one-time partnership network
+##' @param x model output
+##' @param hs shape of gamma-distributed one-time partnership rate
+##' @param hr rate param of gamma-distributed one-time partnership rate
+##' @export
 pgf_h <- function(x, hs, hr) {
   .Call(`_mpoxspam_test_h`, x, hs, hr)
 }
@@ -51,7 +63,14 @@ pgf_h <- function(x, hs, hr) {
 
 
 
-#' @export 
+##'
+##' @title caluclate R0
+##'
+##' @param beta transmission rate
+##' @param gamma1 rate of I->R
+##' @param hs shape of gamma-distributed one-time partnership rate
+##' @param hr rate param of gamma-distributed one-time partnership rate
+##' @export
 calcR0 <- function(beta = 10, gamma1 = 1/4, hs = 0.26, hr = 12.95 )
 {
 	rf <- beta * 1.5/7# factor 1.5/7 is act rate per day; factor 1.5 b/c more contacts per week in long partnerships 

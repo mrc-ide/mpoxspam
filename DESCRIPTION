@@ -17,11 +17,10 @@ BugReports: https://github.com/mrc-ide/mpoxspam/issues
 Depends:
     R (>= 3.0.2)
 Imports:
-    dust (>= 0.14.0),
     mcstate (>= 0.9.13)
 LinkingTo:
     cpp11,
-    dust,
+    dust (>= 0.14.0),
     lostturnip (>= 0.1.2)
 Suggests:
     lostturnip (>= 0.1.2),

@@ -663,7 +663,7 @@ public:
     state_next[29] = beta_next;
     state_next[27] = dseedrate_next;
     state_next[28] = theta_vacc_use;
-    real_type seed_scale_down = veff_targetted * (dot_thetah * hp(dot_thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + veff_untargetted * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + (1 - veff) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1);
+    real_type seed_scale_down = veff_targetted * (dot_thetah * hp(dot_thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + dust::math::pow(veff_untargetted, 2) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + (1 - veff) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1);
     real_type tratef = dust::math::max(static_cast<real_type>(0), (MSIf_ * shared->N * shared->fp1 * rf));
     real_type trateg = dust::math::max(static_cast<real_type>(0), MSIg_ * shared->N * shared->gp1 * rg);
     real_type trateh = beta_next * shared->N * MIh * MSh * shared->hp1;

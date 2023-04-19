@@ -180,7 +180,7 @@ dot_thetah <- thetah * theta_vacc_use
 # imported infections
 # note imports scaled down by susceptibility in h contacts 
 seed_scale_down <- veff_targetted * (dot_thetah * hp(dot_thetah, hshape, hrate) / hp1) + 
-  veff_untargetted*(thetah * hp(thetah, hshape, hrate) / hp1) + 
+  veff_untargetted^2*(thetah * hp(thetah, hshape, hrate) / hp1) + 
   (1-veff)*(thetah * hp(thetah, hshape, hrate) / hp1)
 transmseed <- rpois(seedrate_next * dt) * seed_scale_down 
 

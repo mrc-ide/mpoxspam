@@ -36,6 +36,8 @@ initial( Reff_g ) <- 0
 initial( Reff_h ) <- 0 
 initial( Reff ) <- 0
 
+## debugging
+print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -76,7 +78,7 @@ delta_slope <- user(0.0) # ignore.unused
 seedrate0 <- user(0.75)
 dseedrate0 <- user(0)
 seedrate_sd <- user(0.75) #2.99 #sd of random walk of daily diff in seedrate
-vacc_freq <- user(1)
+#~ vacc_freq <- user(1)
 vacc_start_day <- user(91)
 vacc_start_day2 <- user(91+45) #TODO find date 2nd dose provided
 vacc_targetted <- user(.8) # prop vacc targetted vs random
@@ -86,7 +88,7 @@ vacc_doses <- user(50e3) # Assume 50k doses in UK
 vacc_doses2 <- user(15e3) # TODO find number of 2nd doses
 cumulative_partners_days <- user(90)
 vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
-vacc_duration2 <- user(55) ## TODO find dates 2nd dose provided
+vacc_duration2 <- user(55) ##  find dates 2nd dose provided
 
 exp_noise <- user(1e6) # ignore.unused
 kappa_cases <- user(1) # ignore.unused
@@ -94,26 +96,18 @@ rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_amt <-   min(vacc_doses, N) / vacc_duration / vacc_freq
-vacc_amt2 <-  min(vacc_doses2, N) / vacc_duration2 / vacc_freq # 2nd dose
-vacc_fin_day <- vacc_start_day + vacc_duration - 1
-vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 - 1
+vacc_fin_day <- vacc_start_day + vacc_duration 
+vacc_amt <-  min(vacc_doses, N) / (vacc_duration/dt)
+add_vaccine <- (time >= vacc_start_day) && (time < vacc_fin_day)   
 
-
-add_vaccine <-
-  (time >= vacc_start_day) &&
-  (time <= vacc_fin_day)   &&
-  (((time - vacc_start_day) %% vacc_freq) == 0)
-
-add_vaccine2 <-
-  (time >= vacc_start_day2) &&
-  (time <= vacc_fin_day2)   &&
-  (((time - vacc_start_day2) %% vacc_freq) == 0)
-
+vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 
+vacc_amt2 <-  min(vacc_doses2, N) / (vacc_duration2/dt)
+add_vaccine2 <- (time >= vacc_start_day2) && (time < vacc_fin_day2)   
 
 
 V1_next <- if (add_vaccine) V1 + vacc_amt / N else V1 
 V2_next <- if (add_vaccine2) V2 + vacc_amt2 / N else V2
+
 # effective proportion of population protected by vacc
 veff <- if (V1>0) V1*( (V2/V1)*(1-vacc_efficacy)*vacc_efficacy2 + (1-V2/V1)*vacc_efficacy )  else 0
 veff_targetted <- veff * vacc_targetted 
@@ -180,13 +174,20 @@ vg <-  min( u2g - u1g^2, 3*meanfield_delta_si_g)
 delta_si_g <- (if (transmg == 0) 0
                else min(meanfield_delta_si_g*2,max(as.numeric(0), rnorm(meanfield_delta_si_g, sqrt(vg / transmg))) ))
 
-transmseed <- rpois(seedrate_next * dt) * (thetah * hp(thetah, hshape, hrate) / hp1) # note imports scaled down by susceptibility in h contacts 
+
+dot_thetah <- thetah * theta_vacc_use  
+
+# imported infections
+# note imports scaled down by susceptibility in h contacts 
+seed_scale_down <- veff_targetted * (dot_thetah * hp(dot_thetah, hshape, hrate) / hp1) + 
+  veff_untargetted*(thetah * hp(thetah, hshape, hrate) / hp1) + 
+  (1-veff)*(thetah * hp(thetah, hshape, hrate) / hp1)
+transmseed <- rpois(seedrate_next * dt) * seed_scale_down 
+
 trateh <- beta_next * N * MIh * MSh * hp1
 transmh <- rpois(trateh * dt) 
 
 
-
-dot_thetah <- thetah * theta_vacc_use  
 dthetah <- -thetah * (transmh + transmseed) / (N * hp1 * MSh ) # seeding happens here
 #~ dSh <- hup(thetah,  vacc_targetted, V1, V2, vacc_efficacy, vacc_efficacy2 , theta_vacc_use, hshape, hrate) * dthetah *(1-veff) # note prop to transm, (1-veff) added because hu(x) generates normalised dist among unvacc
 dSh <- -(transmh + transmseed)/N
@@ -348,7 +349,6 @@ config(compare) <- "compare.hpp"
 
 
 # debugging 
-# print("time: {time; .1f} veff: {veff} add_vaccine: {add_vaccine; .0f}")
 #~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
 #~ print('transmf {transmf} transmg {transmg} transmh {transmh} transmseed {transmseed}', when= trateh > 30)
 #~ print( 'dSh {dSh} dSf {dSf} dSg {dSg} delta_si_h {delta_si_h} MEh {MEh}' , when= trateh > 30)

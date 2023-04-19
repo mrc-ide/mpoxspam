@@ -48,7 +48,6 @@ model <- R6::R6Class(
      vacc_duration2 = list(has_default = TRUE, default_value = 55L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_efficacy = list(has_default = TRUE, default_value = 0.78, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_efficacy2 = list(has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
-     vacc_freq = list(has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_start_day = list(has_default = TRUE, default_value = 91L, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_start_day2 = list(has_default = TRUE, default_value = list("+", 91L, 45L), rank = 0, min = -Inf, max = Inf, integer = FALSE),
      vacc_targetted = list(has_default = TRUE, default_value = 0.8, rank = 0, min = -Inf, max = Inf, integer = FALSE)),

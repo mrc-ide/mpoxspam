@@ -19,7 +19,6 @@ reference_pars <- function() {
        seedrate0 = 0.75, 
        dseedrate0=0,
        seedrate_sd = 0.75,
-       vacc_freq = 1,
        vacc_start_day = 91,
        vacc_duration = 55,
        vacc_start_day2 = 91+45,
@@ -97,7 +96,7 @@ if (F)
 }
 
 # heavy vacc on day 50 for one week, V1 VE 0%, V2 VE 100%, all random
-if (F)
+if (T)
 {
 	pars$vacc_start_day = 50
 	pars$vacc_start_day2 = 51
@@ -109,6 +108,36 @@ if (F)
 	pars$vacc_doses2 = 0.5*1e5
 	pars$vacc_targetted=0.
 }
+
+# heavy vacc on day 1 reaching 100% of population, V1 VE 100%, V2 VE 100%, all random
+if (F)
+{
+	pars$vacc_start_day = 1
+	pars$vacc_start_day2 = 3
+	pars$vacc_efficacy = 1.0
+	pars$vacc_efficacy2 = 1.0
+	pars$vacc_duration = 1
+	pars$vacc_duration2 = 1
+	pars$vacc_doses = pars$N-1
+	pars$vacc_doses2 = pars$N-1
+	pars$vacc_targetted=1e-3
+}
+
+# no vacc at all 
+if (F)
+{
+	pars$vacc_start_day = Inf
+	pars$vacc_start_day2 = Inf
+	pars$vacc_efficacy = 0.0
+	pars$vacc_efficacy2 = 0.0
+	pars$vacc_duration = 1
+	pars$vacc_duration2 = 1
+	pars$vacc_doses = 0
+	pars$vacc_doses2 = 0
+	pars$vacc_targetted=0.
+}
+
+
 
 # one particle, random seed
 m <- model$new(pars, 1, 1

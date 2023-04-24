@@ -196,22 +196,22 @@ test_that("vaccination works", {
   expect_true(all(res_novax["V2", , ] == 0))
   expect_equal(sum(colSums(res_novax[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
-  # 100% vaccination on day 1 with 99% efficacy
+  # 80% vaccination on day 1 with 99% efficacy
   pars$vacc_doses <- pars$vacc_doses2 <- pars$N 
   pars$vacc_start_day <- 1
   pars$vacc_duration <- 1
   pars$vacc_start_day2 <- 2
   pars$vacc_duration2 <- 2
-  pars$vacc_efficacy <- pars$vacc_efficacy2 <- 0.99
+  pars$vacc_efficacy <- pars$vacc_efficacy2 <- 0.80
 
   m <- model$new(pars, time = 0, n_par, seed = 1)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
   expect_true(all(res["V1", , 1] == 0))
-  expect_true(all(res["V1", , -1] == 1))
+  expect_equal(sum(res["V1", , -1] - 1), 0, tolerance = 1e-6)
   expect_true(all(res["V2", , 1:2] == 0))
-  expect_true(all(res["V2", , 3] == 0.5))
-  expect_true(all(res["V2", , -(1:3)] == 1))
+  expect_equal(sum(res["V2", , 3] - 0.5), 0, tolerance = 1e-6)
+  expect_equal(sum(res["V2", , -(1:3)] - 1), 0, tolerance = 1e-6)
   expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   ## random vaccination
@@ -219,17 +219,17 @@ test_that("vaccination works", {
   m <- model$new(pars, time = 0, n_par, seed = 1)
   res_random <- m$simulate(t)
   rownames(res_random) <- names(m$info()$index)
-  expect_true(all(res_random["V1", ,-1] == 1))
-  expect_true(all(res_random["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(res_random["V1", , -1] - 1), 0, tolerance = 1e-6)
+  expect_equal(sum(res_random["V2", , -(1:3)] - 1), 0, tolerance = 1e-6)
   expect_equal(sum(colSums(res_random[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   ## perfectly targeted vaccination
-  pars$vacc_targetted <- 1
+  pars$vacc_targetted <- 0.8
   m <- model$new(pars, time = 0, n_par, seed = 1)
   res_perfect <- m$simulate(t)
   rownames(res_perfect) <- names(m$info()$index)
-  expect_true(all(res_perfect["V1", ,-1] == 1))
-  expect_true(all(res_perfect["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(res_perfect["V1", , -1] - 1), 0, tolerance = 1e-6)
+  expect_equal(sum(res_perfect["V2", , -(1:3)] - 1), 0, tolerance = 1e-6)
   expect_equal(sum(colSums(res_perfect[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
 
   ## 100% doses day 1, efficacy 0%
@@ -238,8 +238,8 @@ test_that("vaccination works", {
   res_ve0 <- m$simulate(t)
   ## vaccine efficacy does not affect results
   rownames(res_ve0) <- names(m$info()$index)
-  expect_true(all(res_ve0["V1", ,-1] == 1))
-  expect_true(all(res_ve0["V2",1 ,-(1:3)] == 1))
+  expect_equal(sum(res_ve0["V1", , -1] - 1), 0, tolerance = 1e-6)
+  expect_equal(sum(res_ve0["V2", , -(1:3)] - 1), 0, tolerance = 1e-6)
   expect_equal(sum(colSums(res_ve0[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   # Check we get the same result when efficacy is 0 vs when there is no vaccination

@@ -115,7 +115,8 @@ model_index <- function(info) {
   run <- c("newI", "newIseed", "time")
   state <- c("newI", "newIseed", "cumulative_partners", "S", "I", "R",
              "V1", "V2",
-             "beta", "seedrate", "dseedrate")
+             "beta", "seedrate", "dseedrate",
+             "Reff", "Reff_f", "Reff_g", "Reff_h")
   index <- unlist(info$index)
   list(run = index[run], state = index[state])
 }

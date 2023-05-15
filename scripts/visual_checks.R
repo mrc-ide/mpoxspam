@@ -19,15 +19,15 @@ reference_pars <- function() {
        seedrate0 = 0.75, 
        dseedrate0=0,
        seedrate_sd = 0.75,
-       vacc_start_day_step = 91,
-       vacc_duration_step = 55,
-       vacc_start_day2_step = 91+45,
-       vacc_duration2_step = 55,
+       vacc_start_day = 91,
+       vacc_duration = 55,
+       vacc_start_day2 = 91+45,
+       vacc_duration2 = 55,
        vacc_targetted = 0.8,
        vacc_efficacy = 0.65,
        vacc_efficacy2 = 1.,
-       vacc_doses_step = 50e3,
-       vacc_doses2_step = 25e3,
+       vacc_doses = 50e3,
+       vacc_doses2 = 25e3,
        cumulative_partners_days = 90,
        ## New things added by us:
        exp_noise = 1e6,
@@ -48,8 +48,8 @@ pars$N <- 1e5 # small N
 pars$dseedrate0 <- -.05
 pars$seedrate_sd <- 0
 # no vacc 
-pars$vacc_start_day_step = Inf 
-pars$vacc_start_day2_step = Inf
+pars$vacc_start_day = Inf 
+pars$vacc_start_day2 = Inf
 
 
 pars$beta_step <- pars$beta0
@@ -76,64 +76,64 @@ if (F)
 # heavy vacc on day 50 for one week, all targetted, 100% VE 
 if (F)
 {
-	pars$vacc_start_day_step = 50
-	pars$vacc_start_day2_step = Inf
+	pars$vacc_start_day = 50
+	pars$vacc_start_day2 = Inf
 	pars$vacc_efficacy = 1.
-	pars$vacc_duration_step = 7
-	pars$vacc_doses_step = .2*1e5
+	pars$vacc_duration = 7
+	pars$vacc_doses = .2*1e5
 	pars$vacc_targetted=1.
 }
 
 # heavy vacc on day 50 for one week, all random, 100% VE 
 if (F)
 {
-	pars$vacc_start_day_step = 50
-	pars$vacc_start_day2_step = Inf
+	pars$vacc_start_day = 50
+	pars$vacc_start_day2 = Inf
 	pars$vacc_efficacy = 1.
-	pars$vacc_duration_step = 7
-	pars$vacc_doses_step = 0.2*1e5
+	pars$vacc_duration = 7
+	pars$vacc_doses = 0.2*1e5
 	pars$vacc_targetted=0.
 }
 
 # heavy vacc on day 50 for one week, V1 VE 0%, V2 VE 100%, all random
 if (T)
 {
-	pars$vacc_start_day_step = 50
-	pars$vacc_start_day2_step = 51
+	pars$vacc_start_day = 50
+	pars$vacc_start_day2 = 51
 	pars$vacc_efficacy = 0.0
 	pars$vacc_efficacy2 = 1.
-	pars$vacc_duration_step = 7
-	pars$vacc_duration2_step = 7
-	pars$vacc_doses_step = 0.5*1e5
-	pars$vacc_doses2_step = 0.5*1e5
+	pars$vacc_duration = 7
+	pars$vacc_duration2 = 7
+	pars$vacc_doses = 0.5*1e5
+	pars$vacc_doses2 = 0.5*1e5
 	pars$vacc_targetted=0.
 }
 
 # heavy vacc on day 1 reaching 100% of population, V1 VE 100%, V2 VE 100%, all random
 if (F)
 {
-	pars$vacc_start_day_step = 1
-	pars$vacc_start_day2_step = 3
+	pars$vacc_start_day = 1
+	pars$vacc_start_day2 = 3
 	pars$vacc_efficacy = 1.0
 	pars$vacc_efficacy2 = 1.0
-	pars$vacc_duration_step = 1
-	pars$vacc_duration2_step = 1
-	pars$vacc_doses_step = pars$N-1
-	pars$vacc_doses2_step = pars$N-1
+	pars$vacc_duration = 1
+	pars$vacc_duration2 = 1
+	pars$vacc_doses = pars$N-1
+	pars$vacc_doses2 = pars$N-1
 	pars$vacc_targetted=1e-3
 }
 
 # no vacc at all 
 if (F)
 {
-	pars$vacc_start_day_step = Inf
-	pars$vacc_start_day2_step = Inf
+	pars$vacc_start_day = Inf
+	pars$vacc_start_day2 = Inf
 	pars$vacc_efficacy = 0.0
 	pars$vacc_efficacy2 = 0.0
-	pars$vacc_duration_step = 1
-	pars$vacc_duration2_step = 1
-	pars$vacc_doses_step = 0
-	pars$vacc_doses2_step = 0
+	pars$vacc_duration = 1
+	pars$vacc_duration2 = 1
+	pars$vacc_doses = 0
+	pars$vacc_doses2 = 0
 	pars$vacc_targetted=0.
 }
 

@@ -188,8 +188,8 @@ test_that("vaccination works", {
   t <- seq(10, 14 * 10, by = 10)
 
   # No vaccination when doses = 0
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- 0
-  pars$vacc_start_day_step <- pars$vacc_start_day2_step <- 0
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
   m <- model$new(pars, 0, n_par, seed = 1)
   res_novax <- m$simulate(t)
   rownames(res_novax) <- names(m$info()$index)
@@ -198,11 +198,11 @@ test_that("vaccination works", {
   expect_equal(sum(colSums(res_novax[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
   # 80% vaccination on day 1 with 99% efficacy
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- pars$N 
-  pars$vacc_start_day_step <- 1
-  pars$vacc_duration_step <- 1
-  pars$vacc_start_day2_step <- 2
-  pars$vacc_duration2_step <- 2
+  pars$vacc_doses <- pars$vacc_doses2 <- pars$N 
+  pars$vacc_start_day <- 1
+  pars$vacc_duration <- 1
+  pars$vacc_start_day2 <- 2
+  pars$vacc_duration2 <- 2
   pars$vacc_efficacy <- pars$vacc_efficacy2 <- 0.80
 
   m <- model$new(pars, time = 0, n_par, seed = 1)
@@ -246,7 +246,7 @@ test_that("vaccination works", {
   # Check we get the same result when efficacy is 0 vs when there is no vaccination
   expect_equal(res_novax["newI", ,], res_ve0["newI", , ])
   
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- 1e5
+  pars$vacc_doses <- pars$vacc_doses2 <- 1e5
   pars$vacc_targetted <- 0.8
   pars$vacc_efficacy <- pars$vacc_efficacy2 <- 0.99
   m <- model$new(pars, time = 0, n_par, seed = 1)
@@ -294,8 +294,8 @@ test_that("vaccination works after large epidemic",{
   t <- seq(1, 200)
   
   # No vaccination
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- 0
-  pars$vacc_start_day_step <- pars$vacc_start_day2_step <- 0
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
   m <- model$new(pars, 1, n_par, seed = 1)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
@@ -328,8 +328,8 @@ test_that("vaccination works after large epidemic",{
   t <- seq(1, 200)
   
   # No vaccination or seeding
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- 0
-  pars$vacc_start_day_step <- pars$vacc_start_day2_step <- 0
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
   m <- model$new(pars, 1, n_par, seed = 1)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
@@ -366,8 +366,8 @@ test_that("vaccination works after large epidemic",{
   t <- seq(1, 800)
   
   # No vaccination
-  pars$vacc_doses_step <- pars$vacc_doses2_step <- 0
-  pars$vacc_start_day_step <- pars$vacc_start_day2_step <- 0
+  pars$vacc_doses <- pars$vacc_doses2 <- 0
+  pars$vacc_start_day <- pars$vacc_start_day2 <- 0
   m <- model$new(pars, 1, n_par, seed = 1)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
@@ -397,11 +397,11 @@ test_that("can implement time-varying vaccination", {
   n_par <- 2
   t <- seq(0, 4*7 * 10, by = 10)
   
-  pars$vacc_doses_step <- c(1e3, 2e3, 0)
-  pars$vacc_doses2_step <- c(5e2, 1e3, 0)
-  pars$vacc_duration_step <- pars$vacc_duration2_step <- c(7, 7, Inf)
-  pars$vacc_start_day_step <- c(0, cumsum(pars$vacc_duration_step) + 1)
-  pars$vacc_start_day2_step <- 7 + pars$vacc_start_day_step 
+  pars$vacc_doses <- c(1e3, 2e3, 0)
+  pars$vacc_doses2 <- c(5e2, 1e3, 0)
+  pars$vacc_duration <- pars$vacc_duration2 <- c(7, 7, Inf)
+  pars$vacc_start_day <- c(0, cumsum(pars$vacc_duration) + 1)
+  pars$vacc_start_day2 <- 7 + pars$vacc_start_day 
 
 
   m <- model$new(pars, 0, n_par, seed = 1)
@@ -413,11 +413,11 @@ test_that("can implement time-varying vaccination", {
   # matplot(t(res["V2", , ]), type = "l", x = t / 10)
   # expect_true(all(res["V1", 1, ] == res["V1", 2, ])) ## doesn't vary by particle
 
-  expect_equal(max(res["V1", 1, ]) * pars$N, sum(pars$vacc_doses_step))
-  expect_equal(max(res["V2", 1,]) * pars$N, sum(pars$vacc_doses2_step))
-  expect_equal(res["V1", 1, 8] * pars$N, pars$vacc_doses_step[1], ignore_attr = TRUE)
-  expect_equal(res["V2", 1, 16] * pars$N, pars$vacc_doses2_step[1], ignore_attr = TRUE)
-  expect_equal(res["V2", 1, 23] * pars$N, sum(pars$vacc_doses2_step[1:2]), ignore_attr = TRUE)
+  expect_equal(max(res["V1", 1, ]) * pars$N, sum(pars$vacc_doses))
+  expect_equal(max(res["V2", 1,]) * pars$N, sum(pars$vacc_doses2))
+  expect_equal(res["V1", 1, 8] * pars$N, pars$vacc_doses[1], ignore_attr = TRUE)
+  expect_equal(res["V2", 1, 16] * pars$N, pars$vacc_doses2[1], ignore_attr = TRUE)
+  expect_equal(res["V2", 1, 23] * pars$N, sum(pars$vacc_doses2[1:2]), ignore_attr = TRUE)
 
   expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   

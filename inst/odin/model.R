@@ -86,19 +86,19 @@ vacc_efficacy2 <- user(1.00) # 2 doses, TODO values
 cumulative_partners_days <- user(90)
 
 # time-varying doses
-vacc_start_day_step[] <- user()
-vacc_start_day2_step[] <- user()
-vacc_doses_step[] <- user()
-vacc_doses2_step[] <- user() 
-vacc_duration_step[] <- user()
-vacc_duration2_step[] <- user() 
+vacc_start_day[] <- user()
+vacc_start_day2[] <- user()
+vacc_doses[] <- user()
+vacc_doses2[] <- user() 
+vacc_duration[] <- user()
+vacc_duration2[] <- user() 
 
-dim(vacc_start_day_step) <- user()
-dim(vacc_start_day2_step) <- user()
-dim(vacc_doses_step) <- user()
-dim(vacc_doses2_step) <- user() 
-dim(vacc_duration_step) <- user()
-dim(vacc_duration2_step) <- user() 
+dim(vacc_start_day) <- user()
+dim(vacc_start_day2) <- user()
+dim(vacc_doses) <- user()
+dim(vacc_doses2) <- user() 
+dim(vacc_duration) <- user()
+dim(vacc_duration2) <- user() 
 
 exp_noise <- user(1e6) # ignore.unused
 kappa_cases <- user(1) # ignore.unused
@@ -112,20 +112,20 @@ vacc_period_next <-  vacc_period + if (as.integer(time) == vacc_fin_day) 1 else 
 vacc_period2_next <- vacc_period2 + if (as.integer(time) == vacc_fin_day2) 1 else 0
 update(vacc_period) <- vacc_period_next
 update(vacc_period2) <- vacc_period2_next
-vacc_start_day <- vacc_start_day_step[as.integer(vacc_period)]
-vacc_duration <- vacc_duration_step[as.integer(vacc_period)]
-vacc_doses <- vacc_doses_step[as.integer(vacc_period)]
-vacc_start_day2 <- vacc_start_day2_step[as.integer(vacc_period2)]
-vacc_duration2 <- vacc_duration2_step[as.integer(vacc_period2)]
-vacc_doses2 <- vacc_doses2_step[as.integer(vacc_period2)]
+vacc_start_day_step <- vacc_start_day[as.integer(vacc_period)]
+vacc_duration_step <- vacc_duration[as.integer(vacc_period)]
+vacc_doses_step <- vacc_doses[as.integer(vacc_period)]
+vacc_start_day2_step <- vacc_start_day2[as.integer(vacc_period2)]
+vacc_duration2_step <- vacc_duration2[as.integer(vacc_period2)]
+vacc_doses2_step <- vacc_doses2[as.integer(vacc_period2)]
 
-vacc_fin_day <- vacc_start_day + vacc_duration 
-vacc_amt <-  min(vacc_doses, N) / (vacc_duration/dt)
-add_vaccine <- (time >= vacc_start_day) && (time < vacc_fin_day)   
+vacc_fin_day <- vacc_start_day_step + vacc_duration_step
+vacc_amt <-  min(vacc_doses_step, N) / (vacc_duration_step/dt)
+add_vaccine <- (time >= vacc_start_day_step) && (time < vacc_fin_day)   
 
-vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 
-vacc_amt2 <-  min(vacc_doses2, N) / (vacc_duration2/dt)
-add_vaccine2 <- (time >= vacc_start_day2) && (time < vacc_fin_day2)   
+vacc_fin_day2 <- vacc_start_day2_step + vacc_duration2_step 
+vacc_amt2 <-  min(vacc_doses2_step, N) / (vacc_duration2_step/dt)
+add_vaccine2 <- (time >= vacc_start_day2_step) && (time < vacc_fin_day2)   
 
 
 V1_next <- if (add_vaccine) V1 + vacc_amt / N else V1 

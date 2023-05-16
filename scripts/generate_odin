@@ -9,7 +9,7 @@ withr::with_options(
     "C",
     odin.dust::odin_dust_package(
 		here::here()
-		, options = odin.dust::odin_dust_options(debug_enable=FALSE) 
+		, options = odin.dust::odin_dust_options(debug_enable = FALSE) 
 		)
     )
 )

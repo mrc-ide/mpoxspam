@@ -9,40 +9,41 @@ test_that("model run agrees with reference", {
   reference <- array(
     c(1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.111546627766835, 0, 1, 1.97848857973857, 
-      0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 
-      0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.111546627766835, 
-      0, 1, 1.97848857973857, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 
-      0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 
-      0, 0, -0.111546627766835, 0, 1, 1.97848857973857, 0, 0, 0, 0, 
-      0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 
-      0, 0, NaN, NaN, NaN, NaN, 0.8, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 
-      0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-      1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 0.8, 1, 0, 0, 
+      0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 
+      0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.111546627766835, 
+      0, 1, 1.97848857973857, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 
       1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, 
-      NaN, 0.8, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 
+      0, 0, 0, 0, -0.111546627766835, 0, 1, 1.97848857973857, 0, 0, 
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 
+      0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, 
+      NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 1, 0.8, 1, 0, 0, 1, 0, 0, 1, 
+      0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 
+      1, 0.8, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 
-      0, 0, NaN, NaN, NaN, NaN, 2.2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 
-      0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-      1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 2.2, 1, 0, 0, 
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, 
-      NaN, 2.2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 
-      0, 0, NaN, NaN, NaN, NaN, 2.3, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 
-      0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-      1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 2.3, 1, 0, 0, 
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, 
-      NaN, 2.3), dim = c(38L, 3L, 4L),
-    dimnames = list(
-      c("thetaf", "MSEf", "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", 
-        "MSSg", "MSIg", "MIg", "thetah", "MEh", "MIh", "S", "E", "I", 
-        "R", "newI", "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", 
-        "seedrate", "dseedrate", "theta_vacc", "beta", "cumulative_partners", 
-        "V1", "V2", "Reff_f", "Reff_g", "Reff_h", "Reff", "time"), NULL, NULL)
-    )
+      0, 0, NaN, NaN, NaN, NaN, 1, 1, 0.8, 1, 0, 0, 1, 0, 0, 1, 0, 
+      0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 1, 
+      2.2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 0, 
+      0, NaN, NaN, NaN, NaN, 1, 1, 2.2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 
+      1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+      1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 1, 2.2, 
+      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, 
+      NaN, NaN, NaN, 1, 1, 2.3, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 
+      1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1.97848857973857, 
+      NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 1, 2.3, 1, 0, 0, 1, 0, 0, 1, 
+      0, 0, 1, 0, 0, 1, 0, 0, 750000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 0, 1, 1.97848857973857, NaN, 0, 0, NaN, NaN, NaN, NaN, 1, 
+      1, 2.3), dim = c(40L, 3L, 4L),
+    dimnames = list(c("thetaf", "MSEf", 
+     "MEf", "MSSf", "MSIf", "MIf", "thetag", "MSEg", "MEg", "MSSg", 
+     "MSIg", "MIg", "thetah", "MEh", "MIh", "S", "E", "I", "R", "newI", 
+     "Eseed", "newIseed", "cutf", "cutg", "cuth", "cuts", "seedrate", 
+     "dseedrate", "theta_vacc", "beta", "cumulative_partners", "V1", 
+     "V2", "Reff_f", "Reff_g", "Reff_h", "Reff", "vacc_period", "vacc_period2", 
+     "time"), NULL, NULL))
 
   expect_equal(res, reference)
 
@@ -386,7 +387,38 @@ test_that("vaccination works after large epidemic",{
   # 
   # matplot(t(res["newI", , ]), type = "l", lty = 1, col = 3, ylab = "newI")
   
-  
-  
 
+})
+
+test_that("can implement time-varying vaccination", {
+  pars <- reference_pars()
+  pars$beta0 <- 2
+  pars$seedrate0 <- 2
+  n_par <- 2
+  t <- seq(0, 4*7 * 10, by = 10)
+  
+  pars$vacc_doses <- c(1e3, 2e3, 0)
+  pars$vacc_doses2 <- c(5e2, 1e3, 0)
+  pars$vacc_duration <- pars$vacc_duration2 <- c(7, 7, Inf)
+  pars$vacc_start_day <- c(0, cumsum(pars$vacc_duration) + 1)
+  pars$vacc_start_day2 <- 7 + pars$vacc_start_day 
+
+
+  m <- model$new(pars, 0, n_par, seed = 1)
+  res <- m$simulate(t)
+  rownames(res) <- names(m$info()$index)
+
+  # par(mfrow = c(1, 2))
+  # matplot(t(res["V1", , ]), type = "l", x = t / 10)
+  # matplot(t(res["V2", , ]), type = "l", x = t / 10)
+  # expect_true(all(res["V1", 1, ] == res["V1", 2, ])) ## doesn't vary by particle
+
+  expect_equal(max(res["V1", 1, ]) * pars$N, sum(pars$vacc_doses))
+  expect_equal(max(res["V2", 1,]) * pars$N, sum(pars$vacc_doses2))
+  expect_equal(res["V1", 1, 8] * pars$N, pars$vacc_doses[1], ignore_attr = TRUE)
+  expect_equal(res["V2", 1, 16] * pars$N, pars$vacc_doses2[1], ignore_attr = TRUE)
+  expect_equal(res["V2", 1, 23] * pars$N, sum(pars$vacc_doses2[1:2]), ignore_attr = TRUE)
+
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
+  
 })

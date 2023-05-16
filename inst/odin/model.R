@@ -35,9 +35,9 @@ initial( Reff_f ) <- 0
 initial( Reff_g ) <- 0 
 initial( Reff_h ) <- 0 
 initial( Reff ) <- 0
+initial(vacc_period) <- 1
+initial(vacc_period2) <- 1
 
-## debugging
-print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")
 xinit <- i0 / N
 
 ## Constants we use in a few places; the as.numeric does a conversion
@@ -79,30 +79,54 @@ seedrate0 <- user(0.75)
 dseedrate0 <- user(0)
 seedrate_sd <- user(0.75) #2.99 #sd of random walk of daily diff in seedrate
 #~ vacc_freq <- user(1)
-vacc_start_day <- user(91)
-vacc_start_day2 <- user(91+45) #TODO find date 2nd dose provided
+
 vacc_targetted <- user(.8) # prop vacc targetted vs random
 vacc_efficacy <- user(0.78) # Bertran et el, one dose
 vacc_efficacy2 <- user(1.00) # 2 doses, TODO values
-vacc_doses <- user(50e3) # Assume 50k doses in UK
-vacc_doses2 <- user(15e3) # TODO find number of 2nd doses
 cumulative_partners_days <- user(90)
-vacc_duration <- user(55) ## 2022-08-30 - 2022-07-06
-vacc_duration2 <- user(55) ##  find dates 2nd dose provided
+
+# time-varying doses
+vacc_start_day[] <- user()
+vacc_start_day2[] <- user()
+vacc_doses[] <- user()
+vacc_doses2[] <- user() 
+vacc_duration[] <- user()
+vacc_duration2[] <- user() 
+
+dim(vacc_start_day) <- user()
+dim(vacc_start_day2) <- user()
+dim(vacc_doses) <- user()
+dim(vacc_doses2) <- user() 
+dim(vacc_duration) <- user()
+dim(vacc_duration2) <- user() 
 
 exp_noise <- user(1e6) # ignore.unused
 kappa_cases <- user(1) # ignore.unused
 rho_travel <- user(0.5) # ignore.unused
 use_new_compare <- user(0) # ignore.unused
 
-# new vacc if within schedule (after delay, taking effect)
-vacc_fin_day <- vacc_start_day + vacc_duration 
-vacc_amt <-  min(vacc_doses, N) / (vacc_duration/dt)
-add_vaccine <- (time >= vacc_start_day) && (time < vacc_fin_day)   
 
-vacc_fin_day2 <- vacc_start_day2 + vacc_duration2 
-vacc_amt2 <-  min(vacc_doses2, N) / (vacc_duration2/dt)
-add_vaccine2 <- (time >= vacc_start_day2) && (time < vacc_fin_day2)   
+
+# new vacc if within schedule (after delay, taking effect)
+
+vacc_period_next <- vacc_period + if (time >= vacc_fin_day && (time - dt) < vacc_fin_day) 1 else 0
+vacc_period2_next <- vacc_period2 + if (time >= vacc_fin_day2 && (time - dt) < vacc_fin_day2) 1 else 0
+update(vacc_period) <- vacc_period_next
+update(vacc_period2) <- vacc_period2_next
+vacc_start_day_step <- vacc_start_day[as.integer(vacc_period)]
+vacc_duration_step <- vacc_duration[as.integer(vacc_period)]
+vacc_doses_step <- vacc_doses[as.integer(vacc_period)]
+vacc_start_day2_step <- vacc_start_day2[as.integer(vacc_period2)]
+vacc_duration2_step <- vacc_duration2[as.integer(vacc_period2)]
+vacc_doses2_step <- vacc_doses2[as.integer(vacc_period2)]
+
+vacc_fin_day <- vacc_start_day_step + vacc_duration_step
+vacc_amt <-  min(vacc_doses_step, N) / (vacc_duration_step/dt)
+add_vaccine <- (time >= vacc_start_day_step) && (time < vacc_fin_day)   
+
+vacc_fin_day2 <- vacc_start_day2_step + vacc_duration2_step 
+vacc_amt2 <-  min(vacc_doses2_step, N) / (vacc_duration2_step/dt)
+add_vaccine2 <- (time >= vacc_start_day2_step) && (time < vacc_fin_day2)   
 
 
 V1_next <- if (add_vaccine) V1 + vacc_amt / N else V1 
@@ -359,5 +383,10 @@ config(compare) <- "compare.hpp"
 #~ print( 'MSh {MSh} ' )
 #~ print( '{fp1} {gp1} {hp1} ' )
 #~ print ( '..........................{1}', when = trateh > 30 )
+print( "time: {time} V1: {V1} V2: {V2} vacc_amt {vacc_amt} vacc_amt2 {vacc_amt2} vacc_fin_day {vacc_fin_day} vacc_fin_day2 {vacc_fin_day2}}")
+
+
+# print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")
+
 
 

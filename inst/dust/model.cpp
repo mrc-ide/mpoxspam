@@ -585,8 +585,8 @@ public:
     real_type dseedrate_next = (shared->stochastic_behaviour ? dseedrate_rw : dseedrate_det);
     state_next[19] = newI_next;
     state_next[21] = newIseed_next;
-    real_type vacc_period2_next = vacc_period2 + (static_cast<int>(time) == vacc_fin_day2 ? 1 : 0);
-    real_type vacc_period_next = vacc_period + (static_cast<int>(time) == vacc_fin_day ? 1 : 0);
+    real_type vacc_period2_next = vacc_period2 + (time >= vacc_fin_day2 && (time - shared->dt) < vacc_fin_day2 ? 1 : 0);
+    real_type vacc_period_next = vacc_period + (time >= vacc_fin_day && (time - shared->dt) < vacc_fin_day ? 1 : 0);
     real_type vf = dust::math::min(u2f - dust::math::pow(u1f, 2), 2 * meanfield_delta_si_f);
     real_type vg = dust::math::min(u2g - dust::math::pow(u1g, 2), 3 * meanfield_delta_si_g);
     real_type V1_next = (add_vaccine ? V1 + vacc_amt / (real_type) shared->N : V1);

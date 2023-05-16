@@ -108,8 +108,9 @@ use_new_compare <- user(0) # ignore.unused
 
 
 # new vacc if within schedule (after delay, taking effect)
-vacc_period_next <-  vacc_period + if (as.integer(time) == vacc_fin_day) 1 else 0
-vacc_period2_next <- vacc_period2 + if (as.integer(time) == vacc_fin_day2) 1 else 0
+
+vacc_period_next <- vacc_period + if (time >= vacc_fin_day && (time - dt) < vacc_fin_day) 1 else 0
+vacc_period2_next <- vacc_period2 + if (time >= vacc_fin_day2 && (time - dt) < vacc_fin_day2) 1 else 0
 update(vacc_period) <- vacc_period_next
 update(vacc_period2) <- vacc_period2_next
 vacc_start_day_step <- vacc_start_day[as.integer(vacc_period)]

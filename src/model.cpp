@@ -656,8 +656,8 @@ public:
     real_type dseedrate_next = (shared->stochastic_behaviour ? dseedrate_rw : dseedrate_det);
     state_next[19] = newI_next;
     state_next[21] = newIseed_next;
-    real_type vacc_period2_next = vacc_period2 + (time >= vacc_fin_day2 && (time - shared->dt) < vacc_fin_day2 ? 1 : 0);
-    real_type vacc_period_next = vacc_period + (time >= vacc_fin_day && (time - shared->dt) < vacc_fin_day ? 1 : 0);
+    real_type vacc_period2_inc = vacc_period2 + (time >= vacc_fin_day2 && (time - shared->dt) < vacc_fin_day2 ? 1 : 0);
+    real_type vacc_period_inc = vacc_period + (time >= vacc_fin_day && (time - shared->dt) < vacc_fin_day ? 1 : 0);
     real_type vf = dust::math::min(u2f - dust::math::pow(u1f, 2), 2 * meanfield_delta_si_f);
     real_type vg = dust::math::min(u2g - dust::math::pow(u1g, 2), 3 * meanfield_delta_si_g);
     real_type V1_next = (add_vaccine ? V1 + vacc_amt / (real_type) shared->N : V1);
@@ -668,8 +668,8 @@ public:
     real_type theta_vacc_use = (add_vaccine ? update_theta_vacc4_3(veff_targetted, shared->hshape, shared->hrate) : theta_vacc);
     state_next[29] = beta_next;
     state_next[27] = dseedrate_next;
-    state_next[37] = vacc_period_next;
-    state_next[38] = vacc_period2_next;
+    real_type vacc_period2_next = dust::math::min(static_cast<int>(vacc_period2_inc), shared->dim_vacc_start_day2);
+    real_type vacc_period_next = dust::math::min(static_cast<int>(vacc_period_inc), shared->dim_vacc_start_day);
     real_type vacc_rescale = (add_vaccine ? 1 - (shared->vacc_efficacy * vacc_amt / (real_type) shared->N + (1 - shared->vacc_efficacy) * shared->vacc_efficacy2 * vacc_amt2 / (real_type) shared->N) : 1);
     real_type MSEf_ = MSEf * vacc_rescale;
     real_type MSEg_ = MSEg * vacc_rescale;
@@ -686,6 +686,8 @@ public:
     state_next[32] = V2_next;
     state_next[26] = seedrate_next;
     state_next[28] = theta_vacc_use;
+    state_next[37] = vacc_period_next;
+    state_next[38] = vacc_period2_next;
     real_type seed_scale_down = veff_targetted * (dot_thetah * hp(dot_thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + dust::math::pow(veff_untargetted, 2) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1) + (1 - veff) * (thetah * hp(thetah, shared->hshape, shared->hrate) / (real_type) shared->hp1);
     real_type tratef = dust::math::max(static_cast<real_type>(0), (MSIf_ * shared->N * shared->fp1 * rf));
     real_type trateg = dust::math::max(static_cast<real_type>(0), MSIg_ * shared->N * shared->gp1 * rg);

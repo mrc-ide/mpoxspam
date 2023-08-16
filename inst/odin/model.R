@@ -109,8 +109,13 @@ use_new_compare <- user(0) # ignore.unused
 
 # new vacc if within schedule (after delay, taking effect)
 
-vacc_period_next <- vacc_period + if (time >= vacc_fin_day && (time - dt) < vacc_fin_day) 1 else 0
-vacc_period2_next <- vacc_period2 + if (time >= vacc_fin_day2 && (time - dt) < vacc_fin_day2) 1 else 0
+vacc_period_inc <- vacc_period + if (time >= vacc_fin_day && (time - dt) < vacc_fin_day) 1 else 0
+vacc_period2_inc <- vacc_period2 + if (time >= vacc_fin_day2 && (time - dt) < vacc_fin_day2) 1 else 0
+
+# ensure index does not stray off end of vector into unallocated memory
+vacc_period_next <- min(as.integer(vacc_period_inc), length(vacc_start_day))
+vacc_period2_next <- min(as.integer(vacc_period2_inc), length(vacc_start_day2))
+
 update(vacc_period) <- vacc_period_next
 update(vacc_period2) <- vacc_period2_next
 vacc_start_day_step <- vacc_start_day[as.integer(vacc_period)]
@@ -365,12 +370,11 @@ update(V2) <- V2_next
 update(Reff_f) <- tratef / I / gamma1
 update(Reff_g) <- trateg  / I / gamma1
 update(Reff_h) <- trateh / I / gamma1
-update( Reff ) <- (tratef + trateg + trateh) / I / gamma1 
+update( Reff ) <- (tratef + trateg + trateh) / I / gamma1
 
 
 config(include) <- "support.hpp"
 config(compare) <- "compare.hpp"
-
 
 # debugging 
 #~ print( "time: {time; .0f} N: {N} MIh {MIh}  MSh {MSh} hp1 {hp1} trateh {trateh}", when= trateh > 30)
@@ -383,7 +387,8 @@ config(compare) <- "compare.hpp"
 #~ print( 'MSh {MSh} ' )
 #~ print( '{fp1} {gp1} {hp1} ' )
 #~ print ( '..........................{1}', when = trateh > 30 )
-print( "time: {time} V1: {V1} V2: {V2} vacc_amt {vacc_amt} vacc_amt2 {vacc_amt2} vacc_fin_day {vacc_fin_day} vacc_fin_day2 {vacc_fin_day2}}")
+# print( "time: {time} V1: {V1} V2: {V2} vacc_amt {vacc_amt} vacc_amt2 {vacc_amt2} vacc_fin_day {vacc_fin_day} vacc_fin_day2 {vacc_fin_day2} vacc_period: {vacc_period} vacc_duration_step {vacc_duration_step}")
+# print( "time: {time} step: {tmp} length: {tmp2} dseedrate: {dseedrate_det} seedrate {seedrate} seedrate_next {seedrate_next} dseedrate_next {dseedrate_next}")
 
 
 # print("veff: {veff} tratef: {tratef} trateg {trateg} trateh: {trateh} seedrate_next {seedrate_next} V1: {V1_next} V2: {V2_next} R: {R} beta_next {beta_next} MSf: {MSf} dMSIf: {dMSIf}")

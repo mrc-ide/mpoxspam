@@ -58,7 +58,8 @@ test_that("when beta = 0 all infections are from travel", {
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
-
+  
+  expect_true(any(res["newI", , ] > 0))
   expect_equal(res["newI", , ], res["newIseed", , ])
   expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0)
 
@@ -422,3 +423,38 @@ test_that("can implement time-varying vaccination", {
   expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0, tolerance = 1e-6)
   
 })
+
+test_that("check output weekly with variable dt", {
+  pars <- reference_pars()
+  pars$beta0 <- 10
+  pars$i0 <- 10
+  pars$seedrate0 <- pars$seedrate_sd <- 0
+  pars$dt <- 0.1
+
+  
+  m <- model$new(pars, 1, 3, seed = 1)
+  day_out <-  seq(7, 21, by = 7)
+  t_out <- day_out / pars$dt
+  t <- seq_len(max(t_out))
+  day <- t * pars$dt
+
+  res <- m$simulate(t)
+  rownames(res) <- names(m$info()$index)
+  matplot(day, t(res["newI", , ]), type = "l", lty = 1)
+  abline(v = day_out, lty = 2)
+  
+  # check recorded new infections = difference S+E at start vs end
+  expect_equal(rowSums(res["newI", , t_out]), 
+               res["S", , 1] + res["E", , 1] -
+                 res["S", , length(t)] - res["E", , length(t)])
+  
+  # check newI accumulates weekly then resets
+  diff_newI <- diff(t(res["newI", , ]))
+  expect_true(all(diff_newI[day[-length(day)] %% 7 == 0, ] < 0))
+  expect_true(all(diff_newI[day[-length(day)] %% 7 > 0, ] > 0))
+
+  expect_equal(0, sum(res["newIseed", , ])) # no seeding in this example
+  expect_equal(sum(colSums(res[c("S", "E", "I", "R"), , ]) - pars$N), 0)
+  
+})
+

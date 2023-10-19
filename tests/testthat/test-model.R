@@ -440,9 +440,11 @@ test_that("check output weekly with variable dt", {
 
   res <- m$simulate(t)
   rownames(res) <- names(m$info()$index)
-  matplot(day, t(res["newI", , ]), type = "l", lty = 1)
-  abline(v = day_out, lty = 2)
-  
+
+  # graphical checks
+  # matplot(day, t(res["newI", , ]), type = "l", lty = 1)
+  # abline(v = day_out, lty = 2)
+
   # check recorded new infections = difference S+E at start vs end
   expect_equal(rowSums(res["newI", , t_out]), 
                res["S", , 1] + res["E", , 1] -

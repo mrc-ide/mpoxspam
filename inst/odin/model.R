@@ -54,11 +54,10 @@ dseedrate_step[] <- user()
 dim(beta_step) <- user()
 dim(dseedrate_step) <- user()
 dt <- user(.1)
+steps_per_week <- 7 / dt
 
-## We'll need this; strictly this is (step + 1) * dt but we use unit
-## timesteps here.
 initial(time) <- step
-update(time) <- (step + 1)*dt
+update(time) <- (step + 1) * dt
 
 
 beta0 <- user(2.25)
@@ -313,7 +312,7 @@ dMIf <- -gamma1 * MIf*dt + gamma0 * MEf*dt
 dMIg <- -gamma1 * MIg*dt + gamma0 * MEg*dt
 dMIh <- -gamma1 * MIh*dt + gamma0 * MEh*dt
 
-reset_weekly <- step %% 7 == 0
+reset_weekly <- step %% steps_per_week == 0
 
 ## infected, infectious and not detected:
 newE <- transmf + transmg + transmh + transmseed
